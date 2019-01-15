@@ -1,56 +1,32 @@
 ---
-- define:
-    name: ascalar
-    value: 22
-- display: [ascalar, ascalar,ascalar ]
-
-- define: {name: foo, value: 12}
-- define: {name: bar, value: foo}
-- define:
-    name: alist
-    value:
-      - /var/log
-      - /log
-- display: alist
-- define: {name: quux, value: {ascalar: alist, port_numbers: [80, 443], description: "I am an idiot"}}
-- display: quux
-
 - defmacro:
-    name: anon
-    args:
-      - number
-      - directory
+    name: template
+    args: [beginning, middle , end]
     value:
-      - number
-      - number
-      - /bin/ls
-      - directory
-      - {subpart: {from: quux, key: {index: {from: port_numbers, i: 0}}}}
-      - other:
-        - stuff to
-        - be done here
-- defmacro:
-    name: astep
-    args:
-      - number
-      - directory
-    key: step
+      deploy:
+        - boilerplate
+        - beginning
+        - some intermediate
+        - middle
+        - inermediate
+        - end
+- define:
+    name: data
     value:
-      name: number
-      exec: /bin/ls
-      path: directory
-      other:
-        - stuff to
-        - be done here
+      hotname: lll123
+      ports: [21, 22]
+      username: jill
+      password: 1231231==
 
 ---
-anon: {number: west, directory: '/passwd'}
+- template:
+    beginning: 
+      shutdown_server: 20 seconds
+    middle:
+      deploy:
+        something: {'+': [23, 11]}
+        timeout: 3 h
+        facts: data
+    end: start server
 
-pipelines:
-  for:
-    in: {range: {start: ascalar, end: foo}}
-    do:
-      astep: {name: logs, directory: alist}
-      quux: {anon: {name: logs, directory: alist}}
-      some_list:
-        - {anon: {name: logs, directory: alist}}
+- first_port: data.ports.0
