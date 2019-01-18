@@ -213,20 +213,24 @@ class TestYamp(unittest.TestCase):
         global_env = {'l0': 0, 'l0sub': {'l1': 1, 'l1sub': {'l2': 2}}}
         with self.assertRaises(Exception) as context:
             expand('l0.ZZZ', global_env)
-        pprint.pprint(context.exception.message)
         self.assertTrue('Subvariable' in context.exception.message)
 
     def testSubVarBadDeep(self):
         global_env = {'l0': 0, 'l0sub': {'l1': 1, 'l1sub': {'l2': 2}}}
         with self.assertRaises(Exception) as context:
             expand('l0sub.l1sub.ZZZ', global_env)
-        pprint.pprint(context.exception.message)
+        pp(context.exception.message)
         self.assertTrue('Subvariable' in context.exception.message)
 
     def testSubVarList(self):
         global_env = {'top': [0,1,2,3]}
         self.assertEquals([0,1,2,3], expand('top', global_env))
         self.assertEquals(0, expand('top.0', global_env))
+
+    def testSubVarListBound(self):
+        global_env = {'top': [0,1,2,3], 'two': 2}
+        self.assertEquals([0,1,2,3], expand('top', global_env))
+        self.assertEquals(2, expand('top.two', global_env))
 
     def testSubVarListDeep(self):
         global_env = {'top': {'two': {'three': [0,1,2,3]}}}
@@ -238,12 +242,48 @@ class TestYamp(unittest.TestCase):
         self.assertEquals({'two': 42}, expand('top.1', global_env))
         self.assertEquals(42, expand('top.1.two', global_env))
 
+    def testComplexSubvar(self):
+        global_env = {'comp': {'date': '1/1/1970', 'level2': {'p1': 34, 'p2': 44}, 'list': [1, 2, 3]}}
+        self.assertEqual('1/1/1970', expand('comp.date', global_env))
+        self.assertEqual({'p1': 34, 'p2': 44}, expand('comp.level2', global_env))
+        self.assertEqual(34, expand('comp.level2.p1', global_env))
+        self.assertEqual(3, expand('comp.list.2', global_env))
+
     def testEnvironment(self):
         fake_global = {'env': {'HOME': '/home/elvis'}}
-        self.assertEquals({'HOME': '/home/elvis'},
-            expand('env', fake_global))
-        self.assertEquals('/home/elvis',
-            expand('env.HOME', fake_global))
+        self.assertEquals({'HOME': '/home/elvis'}, expand('env', fake_global))
+        self.assertEquals('/home/elvis', expand('env.HOME', fake_global))
+
+    def testReflection(self):
+        fake_global = {'__FILE__' : 'testReflection', 'env': {'USERNAME': 'epresley'}}
+        self.assertEquals('epresley', expand('env.USERNAME', fake_global))
+        self.assertEquals('testReflection', expand('__FILE__', fake_global))
+
+    def testStringInterpolation(self):
+        bindings = {'A': 1, 'B' : 2, 'C' : { 'D' : 3}}
+        self.assertEquals('', interpolate('', bindings))
+        self.assertEquals('none', interpolate('none', bindings))
+        self.assertEquals('{{A', interpolate('{{A', bindings))
+        self.assertEquals('A}}', interpolate('A}}', bindings))
+        self.assertEquals(' 1 ', interpolate(' {{A}} ', bindings))
+        self.assertEquals('A = 1 B = 2', interpolate('A = {{A}} B = {{B}}', bindings))
+        self.assertEquals("A = 1 B = 2 C = {'D': 3}", interpolate('A = {{A}} B = {{B}} C = {{C}}', bindings))
+        self.assertEquals("A = 1 C.D = 3", interpolate('A = {{A}} C.D = {{C.D}}', bindings))
+
+    def testStringInterpolationExpansion(self):
+        bindings = {'A': 1, 'B' : 2, 'C' : { 'D' : 3}}
+        self.assertEquals(' 1 ', expand(' {{A}} ', bindings))
+        self.assertEquals('A = 1 B = 2', expand('A = {{A}} B = {{B}}', bindings))
+        self.assertEquals("A = 1 B = 2 C = {'D': 3}", expand('A = {{A}} B = {{B}} C = {{C}}', bindings))
+        self.assertEquals("A = 1 C.D = 3", expand('A = {{A}} C.D = {{C.D}}', bindings))
+
+    def testStringInterpolationUndefined(self):
+        bindings = {'A': 1}
+        with self.assertRaises(Exception) as context:
+            expand(' {{QUUX}} ', bindings)
+        pp(context.exception.message)
+        self.assertTrue('ndefined' in context.exception.message)
+
 
 if __name__ == '__main__':
     unittest.main()

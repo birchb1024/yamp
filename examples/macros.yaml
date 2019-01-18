@@ -13,14 +13,14 @@
 - define:
     name: data
     value:
-      hotname: lll123
+      hostname: lll123
       ports: [21, 22]
       username: jill
       password: 1231231==
 
 ---
 - template:
-    beginning: 
+    beginning:
       shutdown_server: 20 seconds
     middle:
       deploy:
@@ -28,5 +28,8 @@
         timeout: 3 h
         facts: data
     end: start server
-
+- define:
+    name: HTTP
+    value: 1
 - first_port: data.ports.0
+- second_port: data.ports.HTTP

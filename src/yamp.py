@@ -7,10 +7,32 @@
 from __future__ import print_function
 
 import os
+
+import re
 import sys
-import pprint
+from pprint import pprint as pp
 import numbers
 from yaml import load, Loader, dump, load_all
+
+def pp(ignore):
+    pass
+
+
+def interpolate(astring, bindings):
+    pp(('**** int', astring))
+    if type(astring) != str:
+        return astring
+    tokens = re.split('({{[^{]*}})', astring)
+    rebound  = []
+    for tok in tokens:
+        value = tok
+        if tok.startswith('{{') and tok.endswith('}}'):
+            variable_name = tok[2:][:-2]
+            value = expand_str(variable_name, bindings)
+            if value == variable_name:
+                raise(Exception('Undefined interpolation variable {} in {}'.format(variable_name, astring)))
+        rebound.append(str(value))
+    return(''.join(rebound))
 
 def lookup(env, key):
     while True:
@@ -49,11 +71,17 @@ def subvar_lookup(original, vars_list, tree, bindings):
     Given ['b', '1' ] , {'b': ['x', 'y']}
         return 'y'
     """
+    pp(['*** sl', original, vars_list, tree])
     if len(vars_list) == 0:
-        raise(Exception('Variable not found in {}'.format(original)))
+        raise(Exception('Subvariable not found in {}'.format(original)))
+    if tree == None:
+        raise(Exception('Subvariable not found {} in {}'.format(vars_list, original)))
+
     first = vars_list[0]
     if type(tree) == dict:
-        if len(vars_list) == 1:
+        if not first in tree:
+            raise(Exception('Subvariable not found {} in {}'.format(first, original)))
+        if len(vars_list) == 1: # last one
             return tree[first]
         else:
             return subvar_lookup(original, vars_list[1:], tree[first], bindings)
@@ -63,11 +91,33 @@ def subvar_lookup(original, vars_list, tree, bindings):
         elif type(first) == str:
             index = expand(first, bindings)
         else:
-            raise(Exception('List index not numeric: {} for {}'.format(first, original)))
-        if len(vars_list) == 1:
+            raise(Exception('Subvariable List index not numeric: {} for {} {}'.format(first, original, tree)))
+        if len(tree) <= index or index < 0:
+            raise(Exception('Subvariable List index out of bounds: {} for {} {}'.format(index, original, tree)))
+        if len(vars_list) == 1: # Last one
             return tree[index]
         else:
-            subvar_lookup(original, vars_list[1:], tree[index], bindings)
+            return subvar_lookup(original, vars_list[1:], tree[index], bindings)
+    else:
+        raise(Exception('Subvariable data not indexable {} {}'.format(original, tree)))
+
+def expand_str(tree, bindings):
+    pp(['***', tree])
+    subvar = tree.split('.')
+    pp(['subvar', subvar])
+    tv = lookup(bindings, subvar[0])
+    pp(['tv', tv])
+    if not tv:
+        return tree # No variable to expand for this string
+    if len(subvar) > 1:
+        # It's a dot notation variable like 'host.name'
+        res_tuple = lookup(bindings, subvar[0])
+        if not res_tuple:
+            return tree
+        return subvar_lookup(tree, subvar[1:], res_tuple[0], bindings)
+    else:
+        # An atomic variable line 'foo'
+        return tv[0]
 
 def expand(tree, bindings):
     """
@@ -75,40 +125,17 @@ def expand(tree, bindings):
     Return a new tree
 
     """
+    pp(('** expa', tree))
     if type(tree) == str:
-        pprint.pprint(['*** tree: ', tree])
-        subvar = tree.split('.')
-        pprint.pprint(('subvar:' , subvar))
-        tv = lookup(bindings, subvar[0])
-        pprint.pprint(('tv: ', tv))
-        if tv:
-            result = tv[0]
-            pprint.pprint(('result:' , result))
-            if type(result) == dict:
-                for dotvar in subvar[1:]:
-                    if type(result) == dict and not dotvar in result:
-                        raise(Exception('Subvariable {} for {} not found in {}'.format(dotvar, tree, tv[0])))
-                    if type(result) == list:
-                        index = dotvar
-                        if index.isdigit():
-                            result = result[int(index)]
-                        else:
-                            raise(Exception('Subvariable list not integer index {} {}'.format(result, tree) ) )
-                    else:
-                        result = result[dotvar]
-                    pprint.pprint(('result:' , result))
-            elif type(result) == list and len(subvar) > 1:
-                index = subvar[1]
-                if index.isdigit():
-                    result = result[int(index)]
-                else:
-                    raise(Exception('Subvariable list not integer index {} {}'.format(result, tree) ) )
-            else:
-                if len(subvar) > 1:
-                    raise(Exception('Subvariable not found {} {} got: {}'.format(subvar[1:], subvar[0], tv[0])))
-            return expand(result, bindings)
+        result = expand_str(tree, bindings)
+        pp(('ex result', result))
+        if result == tree:
+            return interpolate(tree, bindings)
+        if type(result) == str:
+            return interpolate(expand(result, bindings), bindings)
         else:
-            return tree
+            return expand(result, bindings)
+
     elif type(tree) == list:
         newlist = []
         for item in tree:
@@ -160,6 +187,8 @@ def expand(tree, bindings):
             #pprint.pprint(bindings)
             return None
         if 'define' in tree.keys():
+            if len(tree) == 0:
+                raise(Exception('Empty define {}'.format(tree)))
             if 'name' not in tree['define'] or 'value' not in tree['define']:
                 raise(Exception('Syntax error in {}'.format(tree)))
             bindings[tree['define']['name']] = tree['define']['value']
@@ -194,18 +223,19 @@ if __name__ == '__main__':
     global_environment = {'env': os.environ.copy() } # copy() to get a dictionary
 
     for filename in sys.argv[1:]:
+        global_environment['__FILE__'] = filename
         statinfo = os.stat(filename)
         if statinfo.st_size == 0:
             print("ERROR: empty file {}".format(filename), file=sys.stderr)
             sys.exit(1)
-    #    try:
-        docs = load_all(open(filename), Loader=Loader)
-        for tree in docs:
-            expanded_tree = expand(tree, global_environment)
-            print('---')
-            print(dump(expanded_tree, default_flow_style=False))
-    #    except Exception as e:
-    #        print("ERROR: {}\n{}\n".format(filename, e), file=sys.stderr)
-    #        sys.exit(1)
+        try:
+            docs = load_all(open(filename), Loader=Loader)
+            for tree in docs:
+                expanded_tree = expand(tree, global_environment)
+                print('---')
+                print(dump(expanded_tree, default_flow_style=False))
+        except Exception as e:
+            print("ERROR: {}\n{}\n".format(filename, e), file=sys.stderr)
+            sys.exit(1)
 
 
