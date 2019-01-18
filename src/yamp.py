@@ -14,7 +14,7 @@ from pprint import pprint as pp
 import numbers
 from yaml import load, Loader, dump, load_all
 
-def Zpp(ignore):
+def pp(ignore):
     pass
 
 
@@ -292,6 +292,7 @@ def expand(tree, bindings):
 
 
 if __name__ == '__main__':
+
     if len(sys.argv) < 2:
         print('ERROR: no files to scan', file=sys.stderr)
         sys.exit(1)
@@ -308,8 +309,9 @@ if __name__ == '__main__':
             docs = load_all(open(filename), Loader=Loader)
             for tree in docs:
                 expanded_tree = expand(tree, global_environment)
-                print('---')
-                print(dump(expanded_tree, default_flow_style=False))
+                if expanded_tree:
+                    print('---')
+                    print(dump(expanded_tree, default_flow_style=False))
         except Exception as e:
             print("ERROR: {}\n{}\n".format(filename, e), file=sys.stderr)
             sys.exit(1)
