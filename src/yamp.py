@@ -14,7 +14,7 @@ from pprint import pprint as pp
 import numbers
 from yaml import load, Loader, dump, load_all
 
-def pp(ignore):
+def Zpp(ignore):
     pass
 
 
@@ -27,10 +27,10 @@ def interpolate(astring, bindings):
     for tok in tokens:
         value = tok
         if tok.startswith('{{') and tok.endswith('}}'):
-            variable_name = tok[2:][:-2]
+            variable_name = tok[2:][:-2].strip()
             value = expand_str(variable_name, bindings)
             if value == variable_name:
-                raise(Exception('Undefined interpolation variable {} in {}'.format(variable_name, astring)))
+                raise(Exception('Undefined interpolation variable {} in "{}"'.format(variable_name, astring)))
         rebound.append(str(value))
     return(''.join(rebound))
 
@@ -119,6 +119,57 @@ def expand_str(tree, bindings):
         # An atomic variable line 'foo'
         return tv[0]
 
+def expand_repeat(tree, bindings):
+    if 'key' in tree['repeat']:
+        return expand_repeat_dict(tree, bindings)
+    else:
+        return expand_repeat_list(tree, bindings)
+
+def expand_repeat_dict(tree, bindings):
+    statement = tree['repeat']
+    parameters = ['for', 'in', 'body', 'key']
+    if set(parameters) != set(statement.keys()):
+        raise(Exception('Argument mismatch in {} \n\texpected {} got {}'.format(tree, parameters, statement.keys())))
+    rang = expand(expand(statement['in'], bindings), bindings)
+    pp(('*** rang', rang))
+    var = statement['for']
+    body = statement['body']
+    key = statement['key']
+    if type(rang) != list:
+        raise(Exception('Syntax error "in" not list in {}'.format(rang)))
+    if type(var) != str:
+        raise(Exception('Syntax error "for" not string in {}'.format(statement)))
+    if type(key) != str:
+        raise(Exception('Syntax error "key" not string in {}'.format(statement)))
+    result = {}
+    loop_binding = {'__parent__': bindings}
+    for item in rang:
+        loop_binding[var] = item
+        keyvalue = expand(expand(key, loop_binding), loop_binding)
+        result[keyvalue] = expand(expand(body, loop_binding), loop_binding)
+    return result
+
+def expand_repeat_list(tree, bindings):
+    statement = tree['repeat']
+    parameters = ['for', 'in', 'body']
+    if set(parameters) != set(statement.keys()):
+        raise(Exception('Argument mismatch in {} \n\texpected {} got {}'.format(tree, parameters, statement.keys())))
+    rang = expand(expand(statement['in'], bindings), bindings)
+    pp(('*** rang', rang))
+    var = statement['for']
+    body = statement['body']
+    if type(rang) != list:
+        raise(Exception('Syntax error "in" not list in {}'.format(rang)))
+    if type(var) != str:
+        raise(Exception('Syntax error "for" not string in {}'.format(statement)))
+    result = []
+    loop_binding = {'__parent__': bindings}
+    for item in rang:
+        loop_binding[var] = item
+        result.append(expand(body, loop_binding))
+    return result
+
+
 def expand(tree, bindings):
     """
     Recursivley substitute values in the symbol table bindings
@@ -174,6 +225,21 @@ def expand(tree, bindings):
                 sum += item_ex
             return sum
 
+        if 'range' in tree.keys():
+            statement = tree['range']
+            if len(tree.keys()) != 1:
+                    raise(Exception('Syntax error too many keys in {}'.format(tree)))
+            if type(statement) != list:
+                    raise(Exception('Syntax error was expecting list in {}'.format(tree)))
+            if len(statement) < 2:
+                    raise(Exception('Syntax error was expecting list(2) in {}'.format(tree)))
+            for item in statement:
+                if not isinstance(item, numbers.Number):
+                    raise(Exception('Syntax error was expecting integer range in {}'.format(tree)))
+            start = int(statement[0])
+            end = int(statement[1])
+            return list(range(start, end+1))
+
         if 'if' in tree.keys():
             for required in ['else', 'then']:
                 if required not in tree:
@@ -187,13 +253,13 @@ def expand(tree, bindings):
             #pprint.pprint(bindings)
             return None
         if 'define' in tree.keys():
-            if len(tree) == 0:
-                raise(Exception('Empty define {}'.format(tree)))
             if 'name' not in tree['define'] or 'value' not in tree['define']:
                 raise(Exception('Syntax error in {}'.format(tree)))
             bindings[tree['define']['name']] = tree['define']['value']
             #pprint.pprint(bindings)
             return None
+        if 'repeat' in tree.keys():
+            return expand_repeat(tree, bindings)
         if 'defmacro' in tree.keys():
             for required in ['name', 'args', 'value']:
                 if required not in tree['defmacro']:

@@ -266,6 +266,7 @@ class TestYamp(unittest.TestCase):
         self.assertEquals('{{A', interpolate('{{A', bindings))
         self.assertEquals('A}}', interpolate('A}}', bindings))
         self.assertEquals(' 1 ', interpolate(' {{A}} ', bindings))
+        self.assertEquals(' 1 ', interpolate(' {{  A }} ', bindings))
         self.assertEquals('A = 1 B = 2', interpolate('A = {{A}} B = {{B}}', bindings))
         self.assertEquals("A = 1 B = 2 C = {'D': 3}", interpolate('A = {{A}} B = {{B}} C = {{C}}', bindings))
         self.assertEquals("A = 1 C.D = 3", interpolate('A = {{A}} C.D = {{C.D}}', bindings))
@@ -284,6 +285,135 @@ class TestYamp(unittest.TestCase):
         pp(context.exception.message)
         self.assertTrue('ndefined' in context.exception.message)
 
+    def testRepeatListNull(self):
+        bindings = {'A': 1, 'B' : 2}
+        expression = {'repeat':{
+            'for': 'loop_variable',
+            'in': [],
+            'body': ['hello mum', 'iteration {{ loop_variable }}']
+            }}
+        expected = []
+        self.assertEquals(expected, expand(expression, bindings))
+
+    def testRepeatList(self):
+        bindings = {'A': 1, 'B' : 2}
+        expression = {'repeat':{
+            'for': 'loop_variable',
+            'in': [1,2],
+            'body': ['hello mum', 'iteration {{ loop_variable }}']
+            }}
+        expected = [['hello mum', 'iteration 1'],
+                    ['hello mum', 'iteration 2']]
+        self.assertEquals(expected, expand(expression, bindings))
+
+    def testRepeatListBig(self):
+        bindings = {'A': 1, 'B' : 2}
+        expression = {'repeat':{
+            'for': 'loop_variable',
+            'in': [1,2],
+            'body': {'data': ['hello mum', {'data': 'iteration {{ loop_variable }}'}]}
+            }}
+        expected = [{'data': ['hello mum', {'data': 'iteration 1'}]},
+                    {'data': ['hello mum', {'data': 'iteration 2'}]}]
+        self.assertEquals(expected, expand(expression, bindings))
+
+    def testRepeatListNested(self):
+        bindings = {'A': 1, 'B' : 2}
+        expression = {'repeat':{
+            'for': 'outer_loop_variable',
+            'in': [1,2],
+            'body': {'repeat':
+                {'for': 'inner_loop_variable',
+                 'in': [1,2],
+                 'body': 'iteration {{ inner_loop_variable }} {{ outer_loop_variable }}'}}}}
+        expected = [['iteration 1 1', 'iteration 2 1'],
+                    ['iteration 1 2', 'iteration 2 2']]
+        self.assertEquals(expected, expand(expression, bindings))
+
+    def testRange(self):
+        bindings = {'A': 1, 'B' : 2}
+        expression = {'range': [1,3]}
+        expected = [1,2,3]
+        self.assertEquals(expected, expand(expression, bindings))
+
+    def testRepeatListRange(self):
+        bindings = {'A': 1, 'B' : 2}
+        expression = {'repeat':{
+            'for': 'outer_loop_variable',
+            'in': {'range': [1, 3]},
+            'body': 'iteration {{ outer_loop_variable }}'}}
+        expected = ['iteration 1', 'iteration 2', 'iteration 3']
+        self.assertEquals(expected, expand(expression, bindings))
+
+    def testRepeatDictNull(self):
+        bindings = {'A': 1, 'B' : 2}
+        expression = {'repeat':{
+            'for': 'loop_variable',
+            'in': [],
+            'key': 'qq',
+            'body': ['hello mum', 'iteration {{ loop_variable }}']
+            }}
+        expected = {}
+        self.assertEquals(expected, expand(expression, bindings))
+
+    def testRepeatDictRange(self):
+        bindings = {'A': 1, 'B' : 2}
+        expression = {'repeat':{
+            'for': 'loop_variable',
+            'in': {'range': [1,2]},
+            'key': 'K{{loop_variable}}',
+            'body': ['hello mum', 'iteration {{ loop_variable }}']
+            }}
+        expected = {'K1': ['hello mum', 'iteration 1'],
+                    'K2' : ['hello mum', 'iteration 2']}
+        self.assertEquals(expected, expand(expression, bindings))
+
+    def testRepeatDict(self):
+        bindings = {'A': 1, 'B' : 2}
+        expression = {'repeat':{
+            'for': 'loop_variable',
+            'in': [1,2],
+            'key': 'K{{loop_variable}}',
+            'body': ['hello mum', 'iteration {{ loop_variable }}']
+            }}
+        expected = {'K1': ['hello mum', 'iteration 1'],
+                    'K2' : ['hello mum', 'iteration 2']}
+        self.assertEquals(expected, expand(expression, bindings))
+
+    def testRepeatDictNested(self):
+        bindings = {'A': 1, 'B' : 2}
+        expression = {'repeat':{
+            'for': 'loop_variable',
+            'in': [1,2],
+            'key': 'K{{loop_variable}}',
+            'body': { 'repeat':
+                {'for': 'inner_variable',
+                'in': ['a', 'b'],
+                'key': 'K{{inner_variable}}',
+                'body':
+                    ['hello mum', 'iteration {{ loop_variable }} {{ inner_variable }}']}}}}
+        expected = {'K1': {'Ka': ['hello mum', 'iteration 1 a'],
+                           'Kb': ['hello mum', 'iteration 1 b']},
+                    'K2': {'Ka': ['hello mum', 'iteration 2 a'],
+                           'Kb': ['hello mum', 'iteration 2 b']}}
+
+    def testRepeatDictListNested(self):
+        bindings = {'A': 1, 'B' : 2}
+        expression = {'repeat':{
+            'for': 'loop_variable',
+            'in': [1,2],
+            'key': 'K{{loop_variable}}',
+            'body': { 'repeat':
+                {'for': 'inner_variable',
+                'in': ['a', 'b'],
+                'body':
+                    ['hello mum', 'iteration {{ loop_variable }} {{ inner_variable }}']}}}}
+        expected = {'K1': [['hello mum', 'iteration 1 a'],
+                          ['hello mum', 'iteration 1 b']],
+                    'K2': [['hello mum', 'iteration 2 a'],
+                          ['hello mum', 'iteration 2 b']]}
+
+        self.assertEquals(expected, expand(expression, bindings))
 
 if __name__ == '__main__':
     unittest.main()
