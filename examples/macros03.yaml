@@ -1,0 +1,26 @@
+---
+repeat:
+  for: loop_variable
+  in:
+    - 1
+    - 2
+    - 3
+  body:
+    - loop_variable
+    - some step
+    - another
+
+---
+# Result
+-
+  - 1
+  - some step
+  - another
+-
+  - 2
+  - some step
+  - another
+-
+  - 3
+  - some step
+  - another

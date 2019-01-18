@@ -11,7 +11,7 @@ from yamp import *
 def expand_str(yamlstr, env={}):
     return expand(yaml.load(yamlstr), {})
 
-class testEval(unittest.TestCase):
+class TestYamp(unittest.TestCase):
 
     def setUp(self):
         pass
@@ -185,7 +185,65 @@ class testEval(unittest.TestCase):
                         {'mac2': {'p1': 'x2', 'p2': 'x1'}}]}},
                 {'mac3': {'x1': 111, 'x2': 'a'}}], {'a': 33}))
 
+    def testMacroLexicalScope(self):
+        self.assertEquals(
+            [[1000, 42]],
+            expand([
+                {'define': {'name': 'x', 'value': 1000}},
+                {'define': {'name': 'y', 'value': 2000}},
+                {'defmacro':
+                    {'name' : 'outer',
+                    'args' : ['y'],
+                    'value' : [
+                        {'defmacro':
+                            {'name' : 'inner',
+                            'args' : None,
+                            'value' : 'x'}},
+                        {'inner': None}, 'y']}},
+                {'outer': {'y': 42}}], {'x': 33, 'y': 34}))
 
+    def testSubVarDict(self):
+        global_env = {'l0': 0, 'l0sub': {'l1': 1, 'l1sub': {'l2': 2}}}
+        self.assertEquals(0, expand('l0', global_env))
+        self.assertEquals({'l1': 1, 'l1sub': {'l2': 2}}, expand('l0sub', global_env))
+        self.assertEquals(1, expand('l0sub.l1', global_env))
+        self.assertEquals(2, expand('l0sub.l1sub.l2', global_env))
+
+    def testSubVarBad(self):
+        global_env = {'l0': 0, 'l0sub': {'l1': 1, 'l1sub': {'l2': 2}}}
+        with self.assertRaises(Exception) as context:
+            expand('l0.ZZZ', global_env)
+        pprint.pprint(context.exception.message)
+        self.assertTrue('Subvariable' in context.exception.message)
+
+    def testSubVarBadDeep(self):
+        global_env = {'l0': 0, 'l0sub': {'l1': 1, 'l1sub': {'l2': 2}}}
+        with self.assertRaises(Exception) as context:
+            expand('l0sub.l1sub.ZZZ', global_env)
+        pprint.pprint(context.exception.message)
+        self.assertTrue('Subvariable' in context.exception.message)
+
+    def testSubVarList(self):
+        global_env = {'top': [0,1,2,3]}
+        self.assertEquals([0,1,2,3], expand('top', global_env))
+        self.assertEquals(0, expand('top.0', global_env))
+
+    def testSubVarListDeep(self):
+        global_env = {'top': {'two': {'three': [0,1,2,3]}}}
+        self.assertEquals([0,1,2,3], expand('top.two.three', global_env))
+        self.assertEquals(2, expand('top.two.three.2', global_env))
+
+    def testSubVarCombined(self):
+        global_env = {'top': [0, {'two': 42}]}
+        self.assertEquals({'two': 42}, expand('top.1', global_env))
+        self.assertEquals(42, expand('top.1.two', global_env))
+
+    def testEnvironment(self):
+        fake_global = {'env': {'HOME': '/home/elvis'}}
+        self.assertEquals({'HOME': '/home/elvis'},
+            expand('env', fake_global))
+        self.assertEquals('/home/elvis',
+            expand('env.HOME', fake_global))
 
 if __name__ == '__main__':
     unittest.main()
