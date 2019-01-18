@@ -240,12 +240,13 @@ def expand(tree, bindings):
                     raise(Exception('Syntax error was expecting list in {}'.format(tree)))
             if len(statement) < 2:
                     raise(Exception('Syntax error was expecting list(2) in {}'.format(tree)))
-            for item in statement:
-                if not isinstance(item, numbers.Number):
-                    raise(Exception('Syntax error was expecting integer range in {}'.format(tree)))
-            start = int(statement[0])
-            end = int(statement[1])
-            return list(range(start, end+1))
+            start = str(expand(statement[0], bindings)) # TODO
+            end = str(expand(statement[1], bindings))
+            pp((start, end))
+            for item in [start, end]:
+                if not item.isdigit():
+                    raise(Exception('Syntax error was expecting integer range in {}, got {}'.format(tree, item)))
+            return list(range(int(start), int(end)+1))
 
         if 'python' in tree.keys():
             return expand_python(tree, bindings)
