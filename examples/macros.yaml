@@ -6,9 +6,8 @@
       deploy:
         - boilerplate
         - beginning
-        - some intermediate
         - middle
-        - inermediate
+        - intermediate
         - end
 - define:
     name: data
