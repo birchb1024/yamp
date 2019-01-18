@@ -396,6 +396,7 @@ class TestYamp(unittest.TestCase):
                            'Kb': ['hello mum', 'iteration 1 b']},
                     'K2': {'Ka': ['hello mum', 'iteration 2 a'],
                            'Kb': ['hello mum', 'iteration 2 b']}}
+        self.assertEquals(expected, expand(expression, bindings))
 
     def testRepeatDictListNested(self):
         bindings = {'A': 1, 'B' : 2}
@@ -412,8 +413,12 @@ class TestYamp(unittest.TestCase):
                           ['hello mum', 'iteration 1 b']],
                     'K2': [['hello mum', 'iteration 2 a'],
                           ['hello mum', 'iteration 2 b']]}
-
         self.assertEquals(expected, expand(expression, bindings))
+
+    def testPython(self):
+        bindings = {'A': 1, 'B' : 2}
+        self.assertEquals([1, 2], expand({'python': '[A, B]'}, bindings))
+        self.assertEquals(3, expand({'python': 'B + A'}, bindings))
 
 if __name__ == '__main__':
     unittest.main()

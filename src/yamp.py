@@ -169,6 +169,13 @@ def expand_repeat_list(tree, bindings):
         result.append(expand(body, loop_binding))
     return result
 
+def expand_python(tree, bindings):
+    statement = tree['python']
+    if type(statement) != str:
+        raise(Exception('Syntax error not string in {}'.format(tree)))
+    if len(tree.keys()) != 1:
+            raise(Exception('Syntax error too many keys in {}'.format(tree)))
+    return eval('(' + statement + ')', globals(), bindings)
 
 def expand(tree, bindings):
     """
@@ -239,6 +246,9 @@ def expand(tree, bindings):
             start = int(statement[0])
             end = int(statement[1])
             return list(range(start, end+1))
+
+        if 'python' in tree.keys():
+            return expand_python(tree, bindings)
 
         if 'if' in tree.keys():
             for required in ['else', 'then']:
