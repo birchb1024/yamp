@@ -98,21 +98,21 @@ This section describes the operation of the processor and the macros available.
 
 ### Variable Interpolation with dot syntax
 
-### define - Definition of Variables
+### `+define+` - Definition of Variables
 
 ## Macros
 
-## defmacro
+## `+defmacro+`
 
 ## Builtin Variables
 
-### __FILE__ - the current source filename
+### `+__FILE__+` - the current source filename
 
-### __name__ - the current macro expansion
+### `+__name__+` - the current macro expansion
 
-### env - process environment
+### `+env+` - process environment
 
-### argv - command line arguments
+### `+argv+` - command line arguments
 
 ## Processing
 
