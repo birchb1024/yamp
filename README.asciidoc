@@ -2,7 +2,7 @@
 Peter Birch <birchb1024@gmail.com>
 v0.1, 2019-01-01
 :toc: macro
-YAML is human friendly data serialization standard. footnote:[YAML stands for YAML Ain't Markup Language. See https://yaml.org/]  Yamp is a general-purpose macroprocessor for YAML files.  Both its input and output are YAML, it scans the input for symbols an makes substitutions and expansions on the output. yamp is 100% YAML so the syntax for defining and calling macros is YAML also.
+YAML is human friendly data serialization standard. footnote:[YAML stands for YAML Ain't Markup Language. See https://yaml.org/]  Yamp is a general-purpose macroprocessor for YAML files.  Both its input and output are YAML. It scans the input for symbols and makes substitutions and expansions on the output. yamp is 100% YAML so the syntax for defining and calling macros is YAML also.
 
 .TL;DR - Input
 [source, YAML]
