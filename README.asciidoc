@@ -23,12 +23,21 @@ Hello: World
 ----
 
 toc::[]
+# Get Started
 
-### An example - Pipelines as Code.
+Yamp is a Python 2.7 program contained in a single file. Assuming one has installed Python the program is run from the command-line giving the input file to parse as the first argument followed by optional arguments to the expansion. The expansion is written to the standard output:
+
+.Usage
+[source,bash]
+----
+$ python yamp.py <myinputfile>.yaml [arg1..argn]
+----
+
+## An example - Pipelines as Code.
 
 Supposing we are building some https://github.com/tomzo/gocd-yaml-config-plugin[GoCD] pipeline definitions in YAML each of which uses the same Git repository.  The YAML we have to write looks like this:
 
-.YAML output
+.output.yaml
 [source,YAML]
 ----
 pipelines:
@@ -99,15 +108,6 @@ This program is general-purpose, it can be used wherever YAML is required. It's 
 
 There are many great general-purpose macro-processors available, starting with the venerable `GPM`, through `m4`, cpp, and lately, Jinja2. However these are predominantly character-based and the programmer has to compute the indentation required by YAML by counting spaces. Like previous authors we started on this course of writing yet another macro-processor primarily for reasons of laziness. Since yamp transforms dictionaries and lists not character strings, indentation is taken care of.
 
-# Usage
-
-Yamp is a Python 2.7 program contained in a single file. Assuming one has installed Python the program is run from the command-line giving the input file to parse as the first argument, followed by optional arguments to the expansion:
-
-.Usage
-[source,bash]
-----
-$ python yamp.py <myinputfile>.yaml [arg1..argn]
-----
 
 # Reference
 
@@ -128,9 +128,13 @@ AChristopherA
 
 ## Variables
 
-### Variable Interpolation with dot syntax
-
 ### `+define+` - Definition of Variables
+
+### Scalars
+
+### Collections
+
+### Variable Interpolation with dot syntax
 
 ## Macros
 
