@@ -96,8 +96,8 @@ pipelines:
 <1> simple variable definition
 <2> a macro Definition
 <3> variable used
-<4> a macro call - inline
-<3> a macro call - using indentation
+<4> a macro call - flow style
+<3> a macro call - block style
 
 When run through yamp, the output is as above. Now we have a single place where the git repository is defined, if we need to change it we can change it once. 
 
