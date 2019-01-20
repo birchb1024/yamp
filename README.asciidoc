@@ -1,9 +1,28 @@
 = Yamp - Yet Another Macro Processor - for YAML
 Peter Birch <birchb1024@gmail.com>
 v0.1, 2019-01-01
-:toc:
+:toc: macro
 YAML is human friendly data serialization standard. footnote:[YAML stands for Yet Another Markup Language. See https://yaml.org/]  Yamp is a general-purpose macroprocessor for YAML files.  Both its input and output are YAML, it scans the input for symbols an makes substitutions and expansions on the output. yamp is 100% YAML so the syntax for defining and calling macros is YAML also.
 
+.TL;DR - Input
+[source, YAML]
+----
+defmacro:
+    name: foo
+    args: [who]
+    value: 
+        Hello: who
+foo: 
+    who: World
+----
+
+.Output
+[source, YAML]
+----
+Hello: World
+----
+
+toc::[]
 
 ### An example - Pipelines as Code.
 
@@ -94,6 +113,19 @@ $ python yamp.py <myinputfile>.yaml [arg1..argn]
 
 This section describes the operation of the processor and the macros available. 
 
+## Processing
+
+### String interpolation 
+
+[source, YAML]
+----
+define: {name: 'AXA', value: 'A{{ X }}A'}
+AXA: Christopher
+# Produces
+AChristopherA
+----
+
+
 ## Variables
 
 ### Variable Interpolation with dot syntax
@@ -103,6 +135,30 @@ This section describes the operation of the processor and the macros available.
 ## Macros
 
 ## `+defmacro+`
+
+## Conditional Expansion with `+if then else+`
+
+## Testing equality with `+==+`
+
+## Looping with `+repeat+`
+
+## Arithmetic with `+++`
+
+## Reading files with `+include+`
+
+## Evaluating Python expressions
+[source, YAML]
+----
+- {python: ' 2**10 '}
+# Produces
+- 1024
+----
+
+
+[source, YAML]
+----
+include: <filename>
+----
 
 ## Builtin Variables
 
@@ -114,5 +170,4 @@ This section describes the operation of the processor and the macros available.
 
 ### `+argv+` - command line arguments
 
-## Processing
 
