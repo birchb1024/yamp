@@ -1,9 +1,7 @@
-= Yamp - Yet Another Macro Processor for YAML
+= Yamp - Yet Another Macro Processor - for YAML
 Peter Birch <birchb1024@gmail.com>
 v0.1, 2019-01-01
 :toc:
-# Yamp - Yet Another Macro Processor (for YAML)
-
 YAML is human friendly data serialization standard. footnote:[YAML stands for Yet Another Markup Language. See https://yaml.org/]  Yamp is a general-purpose macroprocessor for YAML files.  Both its input and output are YAML, it scans the input for symbols an makes substitutions and expansions on the output. yamp is 100% YAML so the syntax for defining and calling macros is YAML also.
 
 
@@ -92,8 +90,29 @@ Yamp is a Python 2.7 program contained in a single file. Assuming one has instal
 $ python yamp.py <myinputfile>.yaml [arg1..argn]
 ----
 
-# Details
+# Reference
 
 This section describes the operation of the processor and the macros available. 
 
-##
+## Variables
+
+### Variable Interpolation with dot syntax
+
+### define - Definition of Variables
+
+## Macros
+
+## defmacro
+
+## Builtin Variables
+
+### __FILE__ - the current source filename
+
+### __name__ - the current macro expansion
+
+### env - process environment
+
+### argv - command line arguments
+
+## Processing
+
