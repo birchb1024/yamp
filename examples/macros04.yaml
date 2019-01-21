@@ -1,0 +1,5 @@
+---
+- define: {name: FOO, value: 'BAR'}
+- python: '2 + 3'
+- python: 'os.environ["USER"]'
+- python: 'FOO'

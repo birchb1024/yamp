@@ -1,0 +1,14 @@
+---
+- env
+---
+- env.USER
+- __FILE__
+- env.USERNAME
+---
+- Filename is '{{__FILE__}}'
+- My username is {{env.USER}}
+- This variable is {{ MISSING }}
+
+
+
+

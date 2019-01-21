@@ -1,0 +1,15 @@
+---
+- defmacro:
+    name: loop
+    args: [depth]
+    value:
+      if: {'==': [depth, 8]}
+      then: None
+      else:
+          new: {loop: {depth: {'+': [depth, 1]}}}
+          to:
+            - depth
+            - axe
+
+---
+- loop: {depth: 0}
