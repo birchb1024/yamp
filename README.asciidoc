@@ -7,19 +7,19 @@ YAML is human friendly data serialization standard. footnote:[YAML stands for YA
 .TL;DR - Input
 [source, YAML]
 ----
-defmacro:
+- defmacro:
     name: foo
     args: [who]
-    value: 
+    value:
         Hello: who
-foo: 
+- foo:
     who: World
 ----
 
 .Output
 [source, YAML]
 ----
-Hello: World
+- Hello: World
 ----
 
 toc::[]
@@ -41,23 +41,22 @@ Supposing we are building some https://github.com/tomzo/gocd-yaml-config-plugin[
 [source,YAML]
 ----
 pipelines:
-  mypipe1: 
+  mypipe1:
     group: mygroup
-    label_template: "${COUNT}"
+    label_template: ${COUNT}
     materials: # <1>
       mygit:
-        git: http://my.example.org/mygit.git
         branch: master
-    stages:
-
-  mypipe2: 
+        git: http://my.example.org/mygit.git
+    stages: null
+  mypipe2:
     group: mygroup
-    label_template: "${COUNT}"
+    label_template: ${COUNT}
     materials: # <1>
       mygit:
-        git: http://my.example.org/mygit.git 
         branch: ci
-    stages:
+        git: http://my.example.org/mygit.git
+    stages: null
 ----
 <1> Duplicated
 
@@ -73,23 +72,23 @@ define: # <1>
 defmacro: # <2>
     name: mygit_materials
     args: [branch_name]
-    body:
+    value:
       mygit:
         git: mygit_repo_url # <3>
         branch: branch_name
 ---
 pipelines:
-  mypipe1: 
+  mypipe1:
     group: mygroup
     label_template: "${COUNT}"
     materials: {mygit_materials: {branch_name: master}} # <4>
     stages:
 
-  mypipe2: 
+  mypipe2:
     group: mygroup
     label_template: "${COUNT}"
     materials:
-        mygit_materials: 
+        mygit_materials:
             branch_name: ci # <5>
     stages:
 ----
@@ -99,7 +98,7 @@ pipelines:
 <4> a macro call - flow style
 <3> a macro call - block style
 
-When run through yamp, the output is as above. Now we have a single place where the git repository is defined, if we need to change it we can change it once. 
+When run through yamp, the output is as above. Now we have a single place where the git repository is defined, if we need to change it we can change it once.
 
 # Applications
 
@@ -114,18 +113,19 @@ There are many great general-purpose macro-processors available, starting with t
 
 # Reference
 
-This section describes the operation of the processor and the macros available. 
+This section describes the operation of the processor and the macros available.
 
 ## Processing
 
-### String interpolation 
+### String interpolation
 
 [source, YAML]
 ----
-define: {name: 'AXA', value: 'A{{ X }}A'}
-AXA: Christopher
-# Produces
-AChristopherA
+- define: {name: X, value: Christopher}
+- define: {name: AXA, value: 'A{{ X }}A'}
+---
+- AXA: Christopher
+# Produces AChristopherA
 ----
 
 

@@ -1,0 +1,44 @@
+---
+- defmacro:
+    name: foo
+    args: [who]
+    value:
+        Hello: who
+- foo:
+    who: World
+---
+- define: # <1>
+    name: mygit_repo_url
+    value: http://my.example.org/mygit.git
+
+- defmacro: # <2>
+    name: mygit_materials
+    args: [branch_name]
+    value:
+      mygit:
+        git: mygit_repo_url # <3>
+        branch: branch_name
+---
+pipelines:
+  mypipe1: 
+    group: mygroup
+    label_template: "${COUNT}"
+    materials: {mygit_materials: {branch_name: master}} # <4>
+    stages:
+
+  mypipe2: 
+    group: mygroup
+    label_template: "${COUNT}"
+    materials:
+        mygit_materials: 
+            branch_name: ci # <5>
+    stages:
+---
+- define: {name: X, value: Christopher}
+- define: {name: AXA, value: 'A{{ X }}A'}
+---
+- AXA: Christopher
+# Produces AChristopherA
+---
+- {python: ' 2**10 '}
+...
