@@ -420,5 +420,16 @@ class TestYamp(unittest.TestCase):
         self.assertEquals([1, 2], expand({'python': '[A, B]'}, bindings))
         self.assertEquals(3, expand({'python': 'B + A'}, bindings))
 
+    def testInclude(self):
+        bindings = {}
+        global_environment['__FILE__'] = os.path.abspath(__file__)
+        self.assertEquals([
+            '/mnt/virtualdisk2/wo/github.com/birchb1024/yamp/test/fixtures/file1.yaml',
+            '/mnt/virtualdisk2/wo/github.com/birchb1024/yamp/test/fixtures/file2.yaml'],
+             expand([
+                {'include': ['fixtures/file1.yaml', 'fixtures/file2.yaml']},
+                '$f1',
+                '$f2'], global_environment))
+
 if __name__ == '__main__':
     unittest.main()

@@ -263,21 +263,38 @@ def expand(tree, bindings):
                 return expand(expanded, bindings)
             #pprint.pprint(bindings)
             return None
+
         if 'define' in tree.keys():
-            if 'name' not in tree['define'] or 'value' not in tree['define']:
-                raise(Exception('Syntax error in {}'.format(tree)))
-            bindings[tree['define']['name']] = tree['define']['value']
-            #pprint.pprint(bindings)
+            if len(tree.keys()) != 1:
+                    raise(Exception('Syntax error too many keys in {}'.format(tree)))
+            for required in ['name', 'value']:
+                if required not in tree['define']:
+                    raise(Exception('Syntax error "{}" missing in {}'.format(required, tree)))
+            pp(('defining', tree['define']['name'], expand(tree['define']['value'], bindings)))
+            bindings[tree['define']['name']] = expand(tree['define']['value'], bindings)
             return None
+
         if 'repeat' in tree.keys():
             return expand_repeat(tree, bindings)
+
         if 'defmacro' in tree.keys():
             for required in ['name', 'args', 'value']:
                 if required not in tree['defmacro']:
                     raise(Exception('Syntax error {} missing in {}'.format(required, tree)))
             bindings[tree['defmacro']['name']] = new_macro(tree['defmacro'], bindings)
-            #pprint.pprint(bindings)
             return None
+
+        if 'include' in tree.keys():
+            if len(tree.keys()) != 1:
+                    raise(Exception('Syntax error too many keys in {}'.format(tree)))
+            if type(tree['include']) != list:
+                    raise(Exception('Syntax error was expecting list in {}'.format(tree)))
+            for filename in tree['include']:
+                if type(filename) != str:
+                    raise(Exception('Syntax error was list of string in {}'.format(tree)))
+                expand_file(filename)
+            return None
+
         for k,v in tree.iteritems():
             new_k = expand(k, bindings)
             if new_k in newdict:
@@ -291,6 +308,47 @@ def expand(tree, bindings):
     else:
         return tree
 
+def expand_file(filename):
+    """
+    Read and expand a file in the global environment.
+
+    If filename begins with '/' treat as absolute, otherwise
+    treat as relative to the current file. If there is no
+    current file (top-level) use the current directory.
+
+    No return value
+
+    """
+    global global_environment
+
+    current_file = global_environment['__FILE__']
+    if current_file == None:
+        current_dir = os.getcwd()
+    else:
+        current_dir = os.path.dirname(current_file)
+    if filename.startswith('/'):
+        path = filename
+    else:
+        path = os.path.join(current_dir, filename)
+    global_environment['__FILE__'] = path
+    statinfo = os.stat(path)
+    if statinfo.st_size == 0:
+        print("ERROR: empty file {}".format(path), file=sys.stderr)
+        sys.exit(1)
+    try:
+        docs = load_all(open(path), Loader=Loader)
+        for tree in docs:
+            expanded_tree = expand(tree, global_environment)
+            if expanded_tree:
+                print('---')
+                print(dump(expanded_tree, default_flow_style=False))
+        global_environment['__FILE__'] = current_file
+    except Exception as e:
+        print("ERROR: {}\n{}\n".format(path, e), file=sys.stderr)
+        sys.exit(1)
+
+global_environment = {'env': os.environ.copy() } # copy() to get a dictionary
+
 
 if __name__ == '__main__':
 
@@ -298,23 +356,9 @@ if __name__ == '__main__':
         print('ERROR: no files to scan', file=sys.stderr)
         sys.exit(1)
 
-    global_environment = {'env': os.environ.copy() } # copy() to get a dictionary
-
-    for filename in sys.argv[1:]:
-        global_environment['__FILE__'] = filename
-        statinfo = os.stat(filename)
-        if statinfo.st_size == 0:
-            print("ERROR: empty file {}".format(filename), file=sys.stderr)
-            sys.exit(1)
-        try:
-            docs = load_all(open(filename), Loader=Loader)
-            for tree in docs:
-                expanded_tree = expand(tree, global_environment)
-                if expanded_tree:
-                    print('---')
-                    print(dump(expanded_tree, default_flow_style=False))
-        except Exception as e:
-            print("ERROR: {}\n{}\n".format(filename, e), file=sys.stderr)
-            sys.exit(1)
+    global_environment['argv'] = sys.argv
+    filename  = sys.argv[1]
+    global_environment['__FILE__'] = None
+    expand_file(filename)
 
 
