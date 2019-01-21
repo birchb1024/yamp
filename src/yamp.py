@@ -254,14 +254,13 @@ def expand(tree, bindings):
         if 'if' in tree.keys():
             for required in ['else', 'then']:
                 if required not in tree:
-                    raise(Exception('Syntax error {} missing in {}'.format(required, tree)))
+                    raise(Exception('Syntax error "{}" missing in {}'.format(required, tree)))
             if expand(tree['if'], bindings) == True:
                 expanded = expand(tree['then'], bindings)
                 return expand(expanded, bindings)
             else:
                 expanded = expand(tree['else'], bindings)
                 return expand(expanded, bindings)
-            #pprint.pprint(bindings)
             return None
 
         if 'define' in tree.keys():
