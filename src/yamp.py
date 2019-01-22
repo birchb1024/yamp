@@ -30,7 +30,7 @@ def interpolate(astring, bindings):
             variable_name = tok[2:][:-2].strip()
             value = expand_str(variable_name, bindings)
             if value == variable_name:
-                raise(Exception('Undefined interpolation variable {} in "{}"'.format(variable_name, astring)))
+                raise(Exception('Undefined interpolation variable "{}" in "{}"'.format(variable_name, astring)))
         rebound.append(str(value))
     return(''.join(rebound))
 
@@ -68,30 +68,35 @@ def new_macro(tree, bindings):
 
 def subvar_lookup(original, vars_list, tree, bindings):
     """
-    Given ['b', '1' ] , {'b': ['x', 'y']}
+    Given 'b.1', ['b', '1' ] , {'b': ['x', 'y']}
         return 'y'
     """
     pp(['*** sl', original, vars_list, tree])
     if len(vars_list) == 0:
         raise(Exception('Subvariable not found in {}'.format(original)))
     if tree == None:
-        raise(Exception('Subvariable not found {} in {}'.format(vars_list, original)))
+        raise(Exception('Subvariable "{}" not found in {}'.format(vars_list, original)))
 
-    first = vars_list[0]
+    # If the subvar is a variable binding, use it
+    ftv = lookup(bindings, vars_list[0])
+    if ftv:
+        first =  ftv[0]
+    else:
+        first = vars_list[0]
     if type(tree) == dict:
         if not first in tree:
-            raise(Exception('Subvariable not found {} in {}'.format(first, original)))
+            raise(Exception('Subvariable "{}" not found in {}'.format(first, original)))
         if len(vars_list) == 1: # last one
             return tree[first]
         else:
             return subvar_lookup(original, vars_list[1:], tree[first], bindings)
     elif type(tree) == list:
-        if first.isdigit():
+        if type(first) == int:
+            index = first
+        elif type(first) == str and first.isdigit():
             index = int(first)
-        elif type(first) == str:
-            index = expand(first, bindings)
         else:
-            raise(Exception('Subvariable List index not numeric: {} for {} {}'.format(first, original, tree)))
+            raise(Exception('Subvariable List index not numeric: "{}" for {} {}'.format(first, original, tree)))
         if len(tree) <= index or index < 0:
             raise(Exception('Subvariable List index out of bounds: {} for {} {}'.format(index, original, tree)))
         if len(vars_list) == 1: # Last one
@@ -102,7 +107,7 @@ def subvar_lookup(original, vars_list, tree, bindings):
         raise(Exception('Subvariable data not indexable {} {}'.format(original, tree)))
 
 def expand_str(tree, bindings):
-    pp(['***', tree])
+    pp(['*** es', tree])
     subvar = tree.split('.')
     pp(['subvar', subvar])
     tv = lookup(bindings, subvar[0])
@@ -116,7 +121,7 @@ def expand_str(tree, bindings):
             return tree
         return subvar_lookup(tree, subvar[1:], res_tuple[0], bindings)
     else:
-        # An atomic variable line 'foo'
+        # An atomic variable line 'host'
         return tv[0]
 
 def expand_repeat(tree, bindings):
@@ -296,8 +301,6 @@ def expand(tree, bindings):
 
         for k,v in tree.iteritems():
             new_k = expand(k, bindings)
-            if new_k in newdict:
-                raise Exception('ERROR: name collision after expansion of {} with {}'.format(k, newdict))
             if type(new_k) == type(expand):
                 if len(tree.keys()) != 1:
                     raise Exception('ERROR: too many keys in macro call {}'.format(tree))
