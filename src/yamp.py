@@ -23,6 +23,9 @@ def interpolate(astring, bindings):
     if type(astring) != str:
         return astring
     tokens = re.split('({{[^{]*}})', astring)
+    if len(tokens) == 1:
+        # Nothing to interpolate
+        return astring
     rebound  = []
     for tok in tokens:
         value = tok
@@ -324,6 +327,15 @@ def expand(tree, bindings):
                 if len(tree.keys()) != 1:
                     raise Exception('ERROR: too many keys in macro call {}'.format(tree))
                 return(expand(new_k(expand(v, bindings)), bindings))
+            interp_k = interpolate(k, bindings)
+            if interp_k != k:
+                # string containing {{ }} - onle these keys are expanded
+                if interp_k in newdict:
+                    raise Exception('ERROR: duplicate map key "{}" in {}'.format(interp_k, tree))
+                newdict[interp_k] = expand(v, bindings)
+                continue
+            if k in newdict:
+                raise Exception('ERROR: duplicate map key "{}" in {}'.format(k, tree))
             newdict[k] = expand(v, bindings)
         return newdict
     else:
