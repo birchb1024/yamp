@@ -4,7 +4,7 @@
     args: [depth]
     value:
       if: {'==': [depth, 8]}
-      then: None
+      then: null
       else:
           new: {loop: {depth: {'+': [depth, 1]}}}
           to:

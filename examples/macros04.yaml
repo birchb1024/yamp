@@ -1,5 +1,7 @@
 ---
 - define: {name: FOO, value: 'BAR'}
-- python: '2 + 3'
+- python: '2 ** 3'
 - python: 'os.environ["USER"]'
-- python: 'FOO'
+- python: FOO.lower()
+- define: {name: FOO, value: {python: __FILE__.upper()}}
+- FOO =  {{ FOO }}

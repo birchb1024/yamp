@@ -15,7 +15,7 @@
       hostname: lll123
       ports: [21, 22]
       username: jill
-      password: 1231231==
+      password: 1231231
 
 ---
 - template:
