@@ -22,8 +22,7 @@ YAML is human friendly data serialization standard. footnote:[YAML stands for YA
 - Hello: World
 ----
 
-toc::[]
-# Get Started
+== Get Started
 
 Yamp is a Python 2.7 program contained in a single file. Assuming one has installed Python the program is run from the command-line giving the input file to parse as the first argument followed by optional arguments to the expansion. The expansion is written to the standard output:
 
@@ -33,7 +32,7 @@ Yamp is a Python 2.7 program contained in a single file. Assuming one has instal
 $ python yamp.py <myinputfile>.yaml [arg1..argn]
 ----
 
-## An example - Pipelines as Code.
+== An example - Pipelines as Code.
 
 Supposing we are building some https://github.com/tomzo/gocd-yaml-config-plugin[GoCD] pipeline definitions in YAML each of which uses the same Git repository.  The YAML we have to write looks like this:
 
@@ -96,28 +95,28 @@ pipelines:
 <2> a macro Definition
 <3> variable used
 <4> a macro call - flow style
-<3> a macro call - block style
+<5> a macro call - block style
 
 When run through yamp, the output is as above. Now we have a single place where the git repository is defined, if we need to change it we can change it once.
 
-# Applications
+== Applications
 
 This program is general-purpose, it can be used wherever YAML is required. Its first uses were for GoCd pipelines and Ansible playbooks. These are human-readable source code which is a subset of YAML. Hence yamp may not be applied to all aspects of YAML especially those which result from data transmission.  We will not be attempting to exercise yamp with such inputs.
 
 Since YAML is a superset of JSON it can also be used to generate JSON for, say, Azure ARM files.
 
-# Similar Tools
+== Similar Tools
 
 There are many great general-purpose macro-processors available, starting with the venerable `GPM`, through `m4`, cpp, and lately, Jinja2. However these are predominantly character-based and the programmer has to compute the indentation required by YAML by counting spaces. Like previous authors we started on this course of writing yet another macro-processor primarily for reasons of laziness. Since yamp transforms maps and sequences not character strings, indentation is automatic.
 
 
-# Reference
+== Reference
 
 This section describes the operation of the processor and the macros available.
 
-## Processing
+=== Processing
 
-### String interpolation
+==== String interpolation
 
 [source, YAML]
 ----
@@ -129,31 +128,31 @@ This section describes the operation of the processor and the macros available.
 ----
 
 
-## Variables
+=== Variables
 
-### `+define+` - Definition of Variables
+==== `+define+` - Definition of Variables
 
-### Scalars
+==== Scalars
 
-### Collections
+==== Collections
 
-### Variable Interpolation with dot syntax
+==== Variable Interpolation with dot syntax
 
-## Macros
+==== Macros
 
-## `+defmacro+`
+==== `+defmacro+`
 
-## Conditional Expansion with `+if then else+`
+=== Conditional Expansion with `+if then else+`
 
-## Testing equality with `+==+`
+=== Testing equality with `+==+`
 
-## Looping with `+repeat+`
+=== Looping with `+repeat+`
 
-## Arithmetic with `+++`
+=== Arithmetic with `+++`
 
-## Reading files with `+include+`
+=== Reading files with `+include+`
 
-## Evaluating Python expressions
+=== Evaluating Python expressions
 [source, YAML]
 ----
 - {python: ' 2**10 '}
@@ -167,14 +166,14 @@ This section describes the operation of the processor and the macros available.
 include: <filename>
 ----
 
-## Builtin Variables
+=== Builtin Variables
 
-### `+__FILE__+` - the current source filename
+==== `+__FILE__+` - the current source filename
 
-### `+__name__+` - the current macro expansion
+==== `+__name__+` - the current macro expansion
 
-### `+env+` - process environment
+==== `+env+` - process environment
 
-### `+argv+` - command line arguments
+==== `+argv+` - command line arguments
 
 
