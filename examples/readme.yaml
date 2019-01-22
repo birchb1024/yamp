@@ -41,4 +41,45 @@ pipelines:
 # Produces AChristopherA
 ---
 - {python: ' 2**10 '}
+---
+- define: {name: age, value: 32}
+- age
+- define: {name: age2, value: [age, age]}
+- age2
+- define: {name: age2, value: [{define: {name: age, value: 99}}, age]}
+- age2
+# Produces:
+#- 32
+#- - 32
+#  - 32
+#- - 99
+---
+- define:
+    name: data
+    value:
+        - type: webserver
+          hostname: web01
+          ip: 1.1.2.3
+        - type: database
+          hostname: db01
+          ip: 1.1.2.2
+- data.1.hostname
+# produces
+- db01
+---
+defmacro:
+  name: app-upgrade
+  args: [appname, dbname]
+  value:
+      Database upgrade:
+        - stop application {{ appname }}
+        - backup app datbase {{ dbname }}
+        - upgrade the database {{ dbname }}
+        - restart the application {{ appname }}
+        - smoke test {{ appname }}
+---
+- {app-upgrade: { appname: Netflix, dbname: db8812}}
+- app-upgrade:
+    appname: Netflix
+    dbname: postgres123123
 ...

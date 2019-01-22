@@ -898,6 +898,7 @@ a macro call - block style
 <h3 id="_processing">Processing</h3>
 <div class="sect3">
 <h4 id="_string_interpolation">String interpolation</h4>
+<div class="paragraph"><p>Inside strings, yamp will insert expansions delimited by the double-curlies <code>{{</code> and <code>}}</code>. It&#8217;s looking for variable names.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.6
 by Lorenzo Bettini
@@ -912,39 +913,194 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="sect2">
 <h3 id="_variables">Variables</h3>
+<div class="paragraph"><p>During processing yamp maintains a hierarchy of bindings of variable names to variable values. The top level of bindings is the gobal environment, as each macro is applied the application creates a unique environment for the macro variables which is popped when the macro finishes.</p></div>
 <div class="sect3">
-<h4 id="_code_define_code_definition_of_variables"><code>+define+</code> - Definition of Variables</h4>
+<h4 id="_code_define_code_definition_of_variables"><code>define</code> - Definition of Variables</h4>
+<div class="paragraph"><p>You can define new variable bindings or update existing variables with the <code>define</code> macro. The value can be any YAML expansion. Variable names are expected to be strings.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">- </span><span style="color: #009900">define</span><span style="color: #990000">:</span> {name: age, value: <span style="color: #993399">32</span>}
+<span style="color: #990000">-</span> age
+<span style="color: #990000">- </span><span style="color: #009900">define</span><span style="color: #990000">:</span> {name: age2, value: [age, age]}
+<span style="color: #990000">-</span> age2
+<span style="color: #990000">- </span><span style="color: #009900">define</span><span style="color: #990000">:</span> {name: age2, value: [{define: {name: age, value: <span style="color: #993399">99</span>}}, age]}
+<span style="color: #990000">-</span> age2
+<span style="font-style: italic"><span style="color: #9A1900"># Produces:</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">#- 32</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">#- - 32</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">#  - 32</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">#- - 99</span></span></tt></pre></div></div>
 </div>
 <div class="sect3">
 <h4 id="_scalars">Scalars</h4>
+<div class="paragraph"><p>Variables can contain any YAML scalar, int float, string, True, False and null.</p></div>
 </div>
 <div class="sect3">
 <h4 id="_collections">Collections</h4>
+<div class="paragraph"><p>Variables can contain any YAML collection ie, maps and lists.</p></div>
 </div>
 <div class="sect3">
-<h4 id="_variable_interpolation_with_dot_syntax">Variable Interpolation with dot syntax</h4>
+<h4 id="_variable_expansion">Variable Expansion</h4>
+<div class="paragraph"><p>When yamp scans YAML it looks for variables in the lists and map values. When one is found it is replaced with the current value of variable binding. It searches the stack of macro bindings until the global environment is reached. If no bindng is found the string is output unchanged.</p></div>
+<div class="sect4">
+<h5 id="_interpolation_with_dot_syntax">Interpolation with dot syntax</h5>
+<div class="paragraph"><p>If a potential variable contains periods, such as <code>data.height</code> the variable name is assumed to be the first item ie <code>data</code>. If a binding is found the value of the variable is assumed to be a collection and the sub-variable names are used to index the collection. The subvariable names are expanded. If the collection is a map, the sub-variable name is used as the key, if it is a list the subvariable must evaluate to an integer which is zero-indexed into the array.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">- </span><span style="color: #009900">define</span><span style="color: #990000">:</span>
+<span style="color: #990000">    </span><span style="color: #009900">name</span><span style="color: #990000">:</span> data
+<span style="color: #990000">    </span><span style="color: #009900">value</span><span style="color: #990000">:</span>
+<span style="color: #990000">        - </span><span style="color: #009900">type</span><span style="color: #990000">:</span> webserver
+<span style="color: #990000">          </span><span style="color: #009900">hostname</span><span style="color: #990000">:</span> web01
+<span style="color: #990000">          </span><span style="color: #009900">ip</span><span style="color: #990000">:</span> <span style="color: #993399">1.1</span>.<span style="color: #993399">2.3</span>
+<span style="color: #990000">        - </span><span style="color: #009900">type</span><span style="color: #990000">:</span> database
+<span style="color: #990000">          </span><span style="color: #009900">hostname</span><span style="color: #990000">:</span> db01
+<span style="color: #990000">          </span><span style="color: #009900">ip</span><span style="color: #990000">:</span> <span style="color: #993399">1.1</span>.<span style="color: #993399">2.2</span>
+<span style="color: #990000">-</span> data.<span style="color: #993399">1</span>.hostname
+<span style="font-style: italic"><span style="color: #9A1900"># produces</span></span>
+<span style="color: #990000">-</span> db01</tt></pre></div></div>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_macros">Macros</h4>
+<div class="sect4">
+<h5 id="_defining_with_code_defmacro_code">Defining with <code>defmacro</code></h5>
+<div class="paragraph"><p>Macros are re-usable templates of YAML data that can be called up almost anywhere in the expansion. They differ from variables becuase they have parameters which are used to fill holes in the template. The are similar to functions, but unlike functions their entire text is always the result. By defining oft-repeated YAML fragments in macros repetitive work is avoided. Also a singular macro definition makes maintainance easy since there is a single defintion for a concept which canm be easily changed.</p></div>
+<div class="paragraph"><p>Macros are defined with the <code>define</code> macro which gives the macro a name and sepcifies the arguments it has and the expansion to return, the body.  A macro defintion looks like this:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">- </span><span style="color: #009900">defmacro</span><span style="color: #990000">:</span>
+<span style="color: #990000">    </span><span style="color: #009900">name</span><span style="color: #990000">:</span> &lt;the name of the macro&gt;
+<span style="color: #990000">    </span><span style="color: #009900">args</span><span style="color: #990000">:</span> [&lt;list of argument names&gt;, ...]
+<span style="color: #990000">    </span><span style="color: #009900">value</span><span style="color: #990000">:</span>
+      &lt;Some YAML to be expanded&gt;</tt></pre></div></div>
+<div class="paragraph"><p>Example - Database upgrade steps:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #009900">defmacro</span><span style="color: #990000">:</span>
+<span style="color: #990000">  </span><span style="color: #009900">name</span><span style="color: #990000">:</span> app-upgrade
+<span style="color: #990000">  </span><span style="color: #009900">args</span><span style="color: #990000">:</span> [appname, dbname]
+<span style="color: #990000">  </span><span style="color: #009900">value</span><span style="color: #990000">:</span>
+      Database upgrade:
+<span style="color: #990000">        -</span> stop application {{ appname }}
+<span style="color: #990000">        -</span> backup app database {{ dbname }}
+<span style="color: #990000">        -</span> upgrade the database {{ dbname }}
+<span style="color: #990000">        -</span> restart the application {{ appname }}
+<span style="color: #990000">        -</span> smoke test {{ appname }}
+<span style="font-weight: bold"><span style="color: #000000">---</span></span>
+<span style="color: #990000">-</span> {app-upgrade: { appname: Netflix, dbname: db8812}}
+<span style="color: #990000">-</span> app-upgrade:
+<span style="color: #990000">    </span><span style="color: #009900">appname</span><span style="color: #990000">:</span> Netflix
+<span style="color: #990000">    </span><span style="color: #009900">dbname</span><span style="color: #990000">:</span> postgres123123</tt></pre></div></div>
+<div class="paragraph"><p>Produces:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">-</span> Database upgrade:
+<span style="color: #990000">  -</span> stop application Netflix
+<span style="color: #990000">  -</span> backup app datbase db8812
+<span style="color: #990000">  -</span> upgrade the database db8812
+<span style="color: #990000">  -</span> restart the application Netflix
+<span style="color: #990000">  -</span> smoke test Netflix
+<span style="color: #990000">-</span> Database upgrade:
+<span style="color: #990000">  -</span> stop application Netflix
+<span style="color: #990000">  -</span> backup app datbase postgres123123
+<span style="color: #990000">  -</span> upgrade the database postgres123123
+<span style="color: #990000">  -</span> restart the application Netflix
+<span style="color: #990000">  -</span> smoke test Netflix</tt></pre></div></div>
+</div>
 </div>
 <div class="sect3">
-<h4 id="_code_defmacro_code"><code>+defmacro+</code></h4>
+<h4 id="_invoking_calling_macros">Invoking/calling Macros</h4>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>&lt;macro name&gt;:
+   &lt;arg1&gt; : &lt;arg <span style="color: #993399">1</span> value&gt;
+   ...
+   &lt;argN&gt; : &lt;arg N value&gt;</tt></pre></div></div>
+</div>
+<div class="sect3">
+<h4 id="_macros_with_variable_arguments">Macros with variable arguments</h4>
+<div class="paragraph"><p>If the args are speficied as a string, all the actual arguments are passed in as a map.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">- </span><span style="color: #009900">defmacro</span><span style="color: #990000">:</span>
+<span style="color: #990000">    </span><span style="color: #009900">name</span><span style="color: #990000">:</span> &lt;the name of the macro&gt;
+<span style="color: #990000">    </span><span style="color: #009900">args</span><span style="color: #990000">:</span> &lt;argument variable name&gt;
+<span style="color: #990000">    </span><span style="color: #009900">value</span><span style="color: #990000">:</span>
+      &lt;Some YAML to be expanded&gt;</tt></pre></div></div>
+<div class="paragraph"><p>Example:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">- </span><span style="color: #009900">defmacro</span><span style="color: #990000">:</span>
+<span style="color: #990000">    </span><span style="color: #009900">name</span><span style="color: #990000">:</span> package
+<span style="color: #990000">    </span><span style="color: #009900">args</span><span style="color: #990000">:</span> all
+<span style="color: #990000">    </span><span style="color: #009900">value</span><span style="color: #990000">:</span>
+<span style="color: #990000">      </span><span style="color: #009900">name</span><span style="color: #990000">:</span> all.doc
+<span style="color: #990000">      </span><span style="color: #009900">yum</span><span style="color: #990000">:</span>
+<span style="color: #990000">        </span><span style="color: #009900">name</span><span style="color: #990000">:</span> apache
+<span style="color: #990000">        </span><span style="color: #009900">state</span><span style="color: #990000">:</span> all.state
+
+<span style="font-weight: bold"><span style="color: #000000">---</span></span>
+<span style="color: #009900">package</span><span style="color: #990000">:</span>
+<span style="color: #990000">  </span><span style="color: #009900">doc</span><span style="color: #990000">:</span> Install apache
+<span style="color: #990000">  </span><span style="color: #009900">name</span><span style="color: #990000">:</span> httpd
+<span style="color: #990000">  </span><span style="color: #009900">state</span><span style="color: #990000">:</span> latest</tt></pre></div></div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_conditional_expansion_with_code_if_then_else_code">Conditional Expansion with <code>+if then else+</code></h3>
+<h3 id="_conditional_expansion_with_code_if_then_else_code">Conditional Expansion with <code>if then else</code></h3>
+<div class="paragraph"><p>.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_testing_equality_with_code_code">Testing equality with <code>+==+</code></h3>
+<h3 id="_testing_equality_with_code_code">Testing equality with <code>==</code></h3>
+<div class="paragraph"><p>.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_looping_with_code_repeat_code">Looping with <code>+repeat+</code></h3>
+<h3 id="_looping_with_code_repeat_code">Looping with <code>repeat</code></h3>
+<div class="paragraph"><p>.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_arithmetic_with_code_code">Arithmetic with <code>+++</code></h3>
+<h3 id="_arithmetic_with_code_code">Arithmetic with <code>+</code></h3>
+<div class="paragraph"><p>.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_reading_files_with_code_include_code">Reading files with <code>+include+</code></h3>
+<h3 id="_reading_files_with_code_include_code">Reading files with <code>include</code></h3>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #009900">include</span><span style="color: #990000">:</span>
+<span style="color: #990000">-</span> &lt;filename&gt;
+<span style="color: #990000">-</span> &lt;filename&gt;</tt></pre></div></div>
+</div>
+<div class="sect2">
+<h3 id="_reading_data_files_with_code_load_code">Reading data files with <code>load</code></h3>
+<div class="paragraph"><p>.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_evaluating_python_expressions">Evaluating Python expressions</h3>
@@ -956,26 +1112,20 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="color: #990000">-</span> {python: <span style="color: #FF0000">' 2**10 '</span>}
 <span style="font-style: italic"><span style="color: #9A1900"># Produces</span></span>
 <span style="color: #990000">-</span> <span style="color: #993399">1024</span></tt></pre></div></div>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.6
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #009900">include</span><span style="color: #990000">:</span> &lt;filename&gt;</tt></pre></div></div>
 </div>
 <div class="sect2">
 <h3 id="_builtin_variables">Builtin Variables</h3>
 <div class="sect3">
-<h4 id="_code___file___code_the_current_source_filename"><code>+__FILE__+</code> - the current source filename</h4>
+<h4 id="_code___file___code_the_current_source_filename"><code>__FILE__</code> - the current source filename</h4>
 </div>
 <div class="sect3">
-<h4 id="_code___name___code_the_current_macro_expansion"><code>+__name__+</code> - the current macro expansion</h4>
+<h4 id="_code___parent___code_the_environment_binding_parent"><code>__parent__</code> - the environment binding parent</h4>
 </div>
 <div class="sect3">
-<h4 id="_code_env_code_process_environment"><code>+env+</code> - process environment</h4>
+<h4 id="_code_env_code_process_environment"><code>env</code> - process environment</h4>
 </div>
 <div class="sect3">
-<h4 id="_code_argv_code_command_line_arguments"><code>+argv+</code> - command line arguments</h4>
+<h4 id="_code_argv_code_command_line_arguments"><code>argv</code> - command line arguments</h4>
 </div>
 </div>
 </div>
@@ -985,7 +1135,7 @@ http://www.gnu.org/software/src-highlite -->
 <div id="footer">
 <div id="footer-text">
 Version 0.1<br />
-Last updated 2019-01-22 15:06:07 AEDT
+Last updated 2019-01-22 21:27:17 AEDT
 </div>
 </div>
 </body>

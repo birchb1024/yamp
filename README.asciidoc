@@ -118,6 +118,8 @@ This section describes the operation of the processor and the macros available.
 
 ==== String interpolation
 
+Inside strings, yamp will insert expansions delimited by the double-curlies `{{` and `}}`. It's looking for variable names.
+
 [source, YAML]
 ----
 - define: {name: X, value: Christopher}
@@ -130,29 +132,189 @@ This section describes the operation of the processor and the macros available.
 
 === Variables
 
-==== `+define+` - Definition of Variables
+During processing yamp maintains a hierarchy of bindings of variable names to variable values. The top level of bindings is the gobal environment, as each macro is applied the application creates a unique environment for the macro variables which is popped when the macro finishes.
+
+==== `define` - Definition of Variables
+
+You can define new variable bindings or update existing variables with the `define` macro. The value can be any YAML expansion. Variable names are expected to be strings.
+
+[source, YAML]
+----
+- define: {name: age, value: 32}
+- age
+- define: {name: age2, value: [age, age]}
+- age2
+- define: {name: age2, value: [{define: {name: age, value: 99}}, age]}
+- age2
+# Produces:
+#- 32
+#- - 32
+#  - 32
+#- - 99
+----
 
 ==== Scalars
 
+Variables can contain any YAML scalar, int float, string, True, False and null.
+
 ==== Collections
 
-==== Variable Interpolation with dot syntax
+Variables can contain any YAML collection ie, maps and lists.
+
+==== Variable Expansion
+
+When yamp scans YAML it looks for variables in the lists and map values. When one is found it is replaced with the current value of variable binding. It searches the stack of macro bindings until the global environment is reached. If no bindng is found the string is output unchanged.
+
+===== Interpolation with dot syntax
+
+If a potential variable contains periods, such as `data.height` the variable name is assumed to be the first item ie `data`. If a binding is found the value of the variable is assumed to be a collection and the sub-variable names are used to index the collection. The subvariable names are expanded. If the collection is a map, the sub-variable name is used as the key, if it is a list the subvariable must evaluate to an integer which is zero-indexed into the array.
+
+[source, YAML]
+----
+- define:
+    name: data
+    value:
+        - type: webserver
+          hostname: web01
+          ip: 1.1.2.3
+        - type: database
+          hostname: db01
+          ip: 1.1.2.2
+- data.1.hostname
+# produces
+- db01
+----
 
 ==== Macros
 
-==== `+defmacro+`
+===== Defining with `defmacro`
 
-=== Conditional Expansion with `+if then else+`
+Macros are re-usable templates of YAML data that can be called up almost anywhere in the expansion. They differ from variables becuase they have parameters which are used to fill holes in the template. The are similar to functions, but unlike functions their entire text is always the result. By defining oft-repeated YAML fragments in macros repetitive work is avoided. Also a singular macro definition makes maintainance easy since there is a single defintion for a concept which canm be easily changed.
 
-=== Testing equality with `+==+`
+Macros are defined with the `define` macro which gives the macro a name and sepcifies the arguments it has and the expansion to return, the body.  A macro defintion looks like this:
 
-=== Looping with `+repeat+`
+[source,YAML]
+----
+- defmacro:
+    name: <the name of the macro>
+    args: [<list of argument names>, ...]
+    value:
+      <Some YAML to be expanded>
+----
 
-=== Arithmetic with `+++`
+Example - Database upgrade steps:
 
-=== Reading files with `+include+`
+[source,YAML]
+----
+defmacro:
+  name: app-upgrade
+  args: [appname, dbname]
+  value:
+      Database upgrade:
+        - stop application {{ appname }}
+        - backup app database {{ dbname }}
+        - upgrade the database {{ dbname }}
+        - restart the application {{ appname }}
+        - smoke test {{ appname }}
+---
+- {app-upgrade: { appname: Netflix, dbname: db8812}}
+- app-upgrade:
+    appname: Netflix
+    dbname: postgres123123
+----
+
+Produces:
+
+[source,YAML]
+----
+- Database upgrade:
+  - stop application Netflix
+  - backup app datbase db8812
+  - upgrade the database db8812
+  - restart the application Netflix
+  - smoke test Netflix
+- Database upgrade:
+  - stop application Netflix
+  - backup app datbase postgres123123
+  - upgrade the database postgres123123
+  - restart the application Netflix
+  - smoke test Netflix
+----
+
+==== Invoking/calling Macros
+
+[source, YAML]
+----
+<macro name>: 
+   <arg1> : <arg 1 value>
+   ...
+   <argN> : <arg N value>
+----
+
+==== Macros with variable arguments
+
+If the args are speficied as a string, all the actual arguments are passed in as a map.
+
+[source,YAML]
+----
+- defmacro:
+    name: <the name of the macro>
+    args: <argument variable name>
+    value:
+      <Some YAML to be expanded>
+----
+
+Example:
+
+[source,YAML]
+----
+- defmacro:
+    name: package
+    args: all
+    value:
+      name: all.doc
+      yum:
+        name: apache
+        state: all.state
+
+---
+package:
+  doc: Install apache
+  name: httpd
+  state: latest
+----
+
+=== Conditional Expansion with `if then else`
+
+.
+
+=== Testing equality with `==`
+
+.
+
+=== Looping with `repeat`
+
+.
+
+=== Arithmetic with `+`
+
+.
+
+=== Reading files with `include`
+
+[source, YAML]
+----
+include:
+- <filename>
+- <filename>
+----
+
+=== Reading data files with `load`
+
+.
 
 === Evaluating Python expressions
+
 [source, YAML]
 ----
 - {python: ' 2**10 '}
@@ -161,19 +323,15 @@ This section describes the operation of the processor and the macros available.
 ----
 
 
-[source, YAML]
-----
-include: <filename>
-----
 
 === Builtin Variables
 
-==== `+__FILE__+` - the current source filename
+==== `__FILE__` - the current source filename
 
-==== `+__name__+` - the current macro expansion
+==== `__parent__` - the environment binding parent
 
-==== `+env+` - process environment
+==== `env` - process environment
 
-==== `+argv+` - command line arguments
+==== `argv` - command line arguments
 
 
