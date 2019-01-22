@@ -257,18 +257,22 @@ def expand(tree, bindings):
             return expand_python(tree, bindings)
 
         if 'if' in tree.keys():
-            for required in ['else', 'then']:
-                if required not in tree:
-                    raise(Exception('Syntax error "{}" missing in {}'.format(required, tree)))
-            if expand(tree['if'], bindings) == True:
+            pp(('>> if', tree))
+            if 'else' not in tree.keys() and 'then' not in tree.keys():
+                raise(Exception('Syntax error "then" or "else" missing in {}'.format(tree)))
+            if set(tree.keys()) - set(['if', 'then', 'else']):
+                raise(Exception('Syntax error extra keys in {}'.format(tree)))
+            condition = expand(tree['if'], bindings)
+            if condition == True and 'then' in tree.keys():
                 expanded = expand(tree['then'], bindings)
                 return expand(expanded, bindings)
-            else:
+            elif condition == False and 'else' in tree.keys():
                 expanded = expand(tree['else'], bindings)
                 return expand(expanded, bindings)
             return None
 
         if 'define' in tree.keys():
+            pp(('== define', tree))
             if len(tree.keys()) != 1:
                     raise(Exception('Syntax error too many keys in {}'.format(tree)))
             for required in ['name', 'value']:

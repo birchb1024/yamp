@@ -1,6 +1,7 @@
 import os, sys
 import yaml
 import unittest
+from pprint import pprint
 
 curr_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(curr_path + '/../src')
@@ -64,6 +65,19 @@ class TestYamp(unittest.TestCase):
         self.assertEqual(99, expand({'if' : False, 'then': 12, 'else': 99},{}))
         self.assertEqual(22, expand({'if' : True, 'then': 'y', 'else': 99},{'x': 22, 'y': 'x'}))
         self.assertEqual(99, expand({'if' : False, 'then': 'y', 'else': 99},{'x': 22, 'y': 'x'}))
+        self.assertEqual(99, expand({'if' : False, 'else': 99}, {'x': 22, 'y': 'x'}))
+        self.assertEqual(None, expand({'if' : True, 'else': 99}, {'x': 22, 'y': 'x'}))
+        self.assertEqual(None, expand({'if' : False, 'then': 99}, {'x': 22, 'y': 'x'}))
+        self.assertEqual(22, expand({'if' : True, 'then': 'y'},{'x': 22, 'y': 'x'}))
+
+    def testIfBad(self):
+        with self.assertRaises(Exception) as context:
+            expand({'if' : True}, {'x': 22, 'y': 'x'})
+        self.assertTrue('Syntax' in context.exception.message)
+        with self.assertRaises(Exception) as context:
+            expand({'if' : True, 'then': 12, 'else': 99, 'banana':None}, {'x': 22, 'y': 'x'})
+        self.assertTrue('Syntax' in context.exception.message)
+
 
     def testEqual(self):
         self.assertEqual(False, expand({'==' : [12, 0]}, {}))
