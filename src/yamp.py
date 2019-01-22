@@ -316,7 +316,7 @@ def expand(tree, bindings):
             if type(tree['load']) != str:
                     raise(Exception('Syntax error was expecting string in {}'.format(tree)))
             pp(tree['load'])
-            return expand_file(tree['load'], False)
+            return expand_file(expand(tree['load'], bindings), False)
 
         for k,v in tree.iteritems():
             new_k = expand(k, bindings)
