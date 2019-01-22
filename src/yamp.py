@@ -307,7 +307,7 @@ def expand(tree, bindings):
             for filename in tree['include']:
                 if type(filename) != str:
                     raise(Exception('Syntax error was list of string in {}'.format(tree)))
-                expand_file(filename)
+                expand_file(expand(filename, bindings))
             return None
 
         if 'load' in tree.keys():
