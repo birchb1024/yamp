@@ -209,6 +209,11 @@ class TestYamp(unittest.TestCase):
         self.assertEquals(1, expand('l0sub.l1', global_env))
         self.assertEquals(2, expand('l0sub.l1sub.l2', global_env))
 
+    def testSubVarDict(self):
+        global_env = {'avar': 'l1sub', 'l0sub': {'l1': 1, 'l1sub': {'l2': 2}}}
+        self.assertEquals({'l2': 2}, expand('l0sub.avar', global_env))
+        self.assertEquals(2, expand('l0sub.avar.l2', global_env))
+
     def testSubVarBad(self):
         global_env = {'l0': 0, 'l0sub': {'l1': 1, 'l1sub': {'l2': 2}}}
         with self.assertRaises(Exception) as context:

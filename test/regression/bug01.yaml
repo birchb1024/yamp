@@ -1,0 +1,16 @@
+---
+- define:
+    name: data
+    value:
+      PREIMP:
+        hostname: locahostperf0
+        ports: [80, 443]
+      QA2:
+        hostname: locahostqa
+        ports: [80, 443]
+- define: {name: myenv, value: QA2}
+
+---
+if: { == : [data.myenv.hostname, locahostqa]}
+then: null
+else: FAILED test data.myenv.hostname

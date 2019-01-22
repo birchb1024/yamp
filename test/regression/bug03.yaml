@@ -1,0 +1,14 @@
+---
+repeat:
+  for: env
+  in:
+    - PREIMP
+    - PROD
+  key: Deploy_{{ env }}
+  body:
+    for: server
+    in:
+      - 1
+      - 2
+    body:
+      steps: {{ env }} {{ server }}

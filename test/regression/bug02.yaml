@@ -1,0 +1,8 @@
+---
+define: {name: success, value: 3333}
+if: false
+then:
+  - Hello Stage
+else:
+  - Goodbye Stage
+# This should fail - too many keys in if !
