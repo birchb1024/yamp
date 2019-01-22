@@ -63,11 +63,13 @@ class TestYamp(unittest.TestCase):
     def testIf(self):
         self.assertEqual(12, expand({'if' : True, 'then': 12, 'else': 99},{}))
         self.assertEqual(99, expand({'if' : False, 'then': 12, 'else': 99},{}))
+        self.assertEqual(99, expand({'if' : None, 'then': 12, 'else': 99},{}))
         self.assertEqual(22, expand({'if' : True, 'then': 'y', 'else': 99},{'x': 22, 'y': 'x'}))
         self.assertEqual(99, expand({'if' : False, 'then': 'y', 'else': 99},{'x': 22, 'y': 'x'}))
         self.assertEqual(99, expand({'if' : False, 'else': 99}, {'x': 22, 'y': 'x'}))
         self.assertEqual(None, expand({'if' : True, 'else': 99}, {'x': 22, 'y': 'x'}))
         self.assertEqual(None, expand({'if' : False, 'then': 99}, {'x': 22, 'y': 'x'}))
+        self.assertEqual(None, expand({'if' : None, 'then': 99}, {'x': 22, 'y': 'x'}))
         self.assertEqual(22, expand({'if' : True, 'then': 'y'},{'x': 22, 'y': 'x'}))
 
     def testIfBad(self):
@@ -77,6 +79,10 @@ class TestYamp(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             expand({'if' : True, 'then': 12, 'else': 99, 'banana':None}, {'x': 22, 'y': 'x'})
         self.assertTrue('Syntax' in context.exception.message)
+        for item in [32, 'ss', [1], {'a':2}]:
+            with self.assertRaises(Exception) as context:
+                expand({'if' : item, 'then': 12, 'else': 99}, {'x': 22, 'y': 'x'})
+            self.assertTrue('If condition' in context.exception.message)
 
 
     def testEqual(self):

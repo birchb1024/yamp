@@ -263,10 +263,12 @@ def expand(tree, bindings):
             if set(tree.keys()) - set(['if', 'then', 'else']):
                 raise(Exception('Syntax error extra keys in {}'.format(tree)))
             condition = expand(tree['if'], bindings)
+            if condition not in [True, False, None]:
+                raise(Exception('If condition not "true", "false" or "null". Got: "{}" in {}'.format(condition, tree)))
             if condition == True and 'then' in tree.keys():
                 expanded = expand(tree['then'], bindings)
                 return expand(expanded, bindings)
-            elif condition == False and 'else' in tree.keys():
+            elif (condition == False or condition == None) and 'else' in tree.keys():
                 expanded = expand(tree['else'], bindings)
                 return expand(expanded, bindings)
             return None
