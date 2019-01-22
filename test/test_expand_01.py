@@ -9,9 +9,6 @@ sys.path.append(curr_path + '/../src')
 from yamp import *
 
 
-def expand_str(yamlstr, env={}):
-    return expand(yaml.load(yamlstr), {})
-
 class TestYamp(unittest.TestCase):
 
     def setUp(self):
@@ -125,7 +122,7 @@ class TestYamp(unittest.TestCase):
                  {'amac': {'extra': None}}], {})
         self.assertTrue('Too many args for' in context.exception.message)
 
-    def testMacroTooManyArgs(self):
+    def testMacroTooManyArgs02(self):
         with self.assertRaises(Exception) as context:
             expand([
                 {'defmacro':
@@ -165,9 +162,29 @@ class TestYamp(unittest.TestCase):
                     'value' : ['p1','p2']}},
                 {'maco1': {'p1': 1, 'p2': ['p1',2,{'a': 3, 'b': 4}]}}], {'a': 33}))
 
+    def testMacroVarargsNone(self):
+        self.assertEquals(
+            [],
+            expand([
+                {'defmacro':
+                    {'name' : 'vmac',
+                    'args' : 'all',
+                    'value' : 'all'}},
+                {'vmac': None}], {'a': 33}))
+
+    def testMacroVarargs(self):
+        self.assertEquals(
+            [{'a': 3, 'b': 4}],
+            expand([
+                {'defmacro':
+                    {'name' : 'vmac',
+                    'args' : 'all',
+                    'value' : 'all.p2.2'}},
+                {'vmac': {'p1': 1, 'p2': ['p1',2,{'a': 3, 'b': 4}]}}], {'a': 33}))
+
     def testMacroInDict(self):
         self.assertEquals(
-            [{1:None}, [1, [1, 2, {'a': 3, 'b': 4}]]],
+            [{1: None}, [1, [1, 2, {'a': 3, 'b': 4}]]],
             expand([
                 {1: {'defmacro':
                     {'name' : 'maco1',

@@ -50,18 +50,21 @@ def new_macro(tree, bindings):
     body = tree['value']
     parameters = tree['args'] or []
     def apply(args):
-        # pprint.pprint("to apply: {} to {} with {}".format(name, args, bindings))
-        # pprint.pprint(('**apply', name, parameters, args))
+        pp("to apply: {} to {} with {}".format(name, args, bindings))
+        pp(('**apply', name, parameters, args))
         if args and type(args) != dict:
             raise(Exception('Expecting dict args for {}, got: {}'.format(name, args)))
-        if len(parameters) == 0  and args:
+        if type(parameters) == list and len(parameters) == 0  and args:
             raise(Exception('Too many args for {}: {}'.format(name, args)))
-        if parameters and args:
+        if type(parameters) == list and parameters and args:
             if set(parameters or []) != set(args.keys()):
                 raise(Exception('Argument mismatch in {} expected {} got {}'.format(name, parameters, args)))
         macro_env = {'__parent__': bindings}
-        if args: # Might be None for no args
-            macro_env.update(args)
+        if type(parameters) == str: # varargs
+            macro_env[parameters] = args
+        else:
+            if args: # Might be None for no args
+                macro_env.update(args)
         return expand(body, macro_env)
     return apply
 
@@ -90,7 +93,7 @@ def subvar_lookup(original, vars_list, tree, bindings):
             return tree[first]
         else:
             return subvar_lookup(original, vars_list[1:], tree[first], bindings)
-    elif type(tree) == list:
+    elif type(tree) == list or type(tree) == tuple:
         if type(first) == int:
             index = first
         elif type(first) == str and first.isdigit():
