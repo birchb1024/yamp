@@ -1,4 +1,7 @@
 ---
+- define: { name: AVARIABLE, value: macros.yaml }
+- define: { name: <ANOTHERVARIABLE>, value: readme }
+---
 include:
-  - readme.yaml
-  - macros.yaml
+  - AVARIABLE
+  - '{{ <ANOTHERVARIABLE> }}.yaml'
