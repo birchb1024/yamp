@@ -283,6 +283,8 @@ def expand(tree, bindings):
             for required in ['name', 'value']:
                 if required not in tree['define']:
                     raise(Exception('Syntax error "{}" missing in {}'.format(required, tree)))
+            if type(tree['define']['name']) != str:
+                raise(Exception('Syntax error "{}" not a string in {}'.format(tree['define']['name'], tree)))
             pp(('defining', tree['define']['name'], expand(tree['define']['value'], bindings)))
             bindings[tree['define']['name']] = expand(tree['define']['value'], bindings)
             return None
