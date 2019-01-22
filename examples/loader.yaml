@@ -1,0 +1,6 @@
+---
+- define:
+    name: somedata
+    value: {load: data.yaml}
+---
+somedata.1.qa1

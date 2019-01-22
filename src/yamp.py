@@ -308,6 +308,14 @@ def expand(tree, bindings):
                 expand_file(filename)
             return None
 
+        if 'load' in tree.keys():
+            if len(tree.keys()) != 1:
+                    raise(Exception('Syntax error too many keys in {}'.format(tree)))
+            if type(tree['load']) != str:
+                    raise(Exception('Syntax error was expecting string in {}'.format(tree)))
+            pp(tree['load'])
+            return expand_file(tree['load'], False)
+
         for k,v in tree.iteritems():
             new_k = expand(k, bindings)
             if type(new_k) == type(expand):
@@ -319,9 +327,10 @@ def expand(tree, bindings):
     else:
         return tree
 
-def expand_file(filename):
+
+def expand_file(filename, expandafterload=True):
     """
-    Read and expand a file in the global environment.
+    Read and optionally expand a file in the global environment.
 
     If filename begins with '/' treat as absolute, otherwise
     treat as relative to the current file. If there is no
@@ -341,21 +350,26 @@ def expand_file(filename):
         path = filename
     else:
         path = os.path.join(current_dir, filename)
-    global_environment['__FILE__'] = path
+    if expandafterload:
+        global_environment['__FILE__'] = path
     statinfo = os.stat(path)
     if statinfo.st_size == 0:
         print("ERROR: empty file {}".format(path), file=sys.stderr)
         sys.exit(1)
     try:
         docs = load_all(open(path), Loader=Loader)
-        for tree in docs:
-            expanded_tree = expand(tree, global_environment)
-            if expanded_tree:
-                print('---')
-                print(dump(expanded_tree, default_flow_style=False))
+        if expandafterload:
+            for tree in docs:
+                expanded_tree = expand(tree, global_environment)
+                if expanded_tree:
+                    print('---')
+                    print(dump(expanded_tree, default_flow_style=False))
+        else:
+            return [tree for tree in docs]
         global_environment['__FILE__'] = current_file
     except Exception as e:
-        print("ERROR: {}\n{}\n".format(path, e), file=sys.stderr)
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        print("ERROR: {}\n{} line {}\n".format(path, e, exc_tb.tb_lineno), file=sys.stderr)
         sys.exit(1)
 
 global_environment = {'env': os.environ.copy() } # copy() to get a dictionary
