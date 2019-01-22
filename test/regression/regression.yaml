@@ -2,6 +2,4 @@
 # Regression test found defects
 include:
   - bug01.yaml
-  - bug03.yaml
----
   # - bug02.yaml S Should fail
