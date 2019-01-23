@@ -194,11 +194,12 @@ def map_define(arglist, bindings):
         a: 1
         b: 2
     """
-    #             
-    if type(arglist) != dict:
-        raise(Exception('Syntax error bad define arguments {}'.format(arglist)))
-    for k,v in arglist.iteritems():
-        bindings[k] = expand(v, bindings)
+    #
+    definitions = expand(arglist, bindings)
+    if type(definitions) != dict:
+        raise(Exception('Syntax error bad define arguments "{}" from {}'.format(definitions, arglist)))
+    bindings.update(definitions)
+    return None
 
 
 def expand(tree, bindings):
