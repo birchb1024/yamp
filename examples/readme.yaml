@@ -37,7 +37,7 @@ pipelines:
 - define: {name: X, value: Christopher}
 - define: {name: AXA, value: 'A{{ X }}A'}
 ---
-- AXA: Christopher
+- AXA
 # Produces AChristopherA
 ---
 - {python: ' 2**10 '}

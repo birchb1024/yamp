@@ -125,7 +125,7 @@ Inside strings, yamp will insert expansions delimited by the double-curlies `{{`
 - define: {name: X, value: Christopher}
 - define: {name: AXA, value: 'A{{ X }}A'}
 ---
-- AXA: Christopher
+- AXA
 # Produces AChristopherA
 ----
 
