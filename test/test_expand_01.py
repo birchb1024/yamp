@@ -275,14 +275,14 @@ class TestYamp(unittest.TestCase):
                         {'inner': None}, 'y']}},
                 {'outer': {'y': 42}}], {'x': 33, 'y': 34}))
 
-    def testSubVarDict(self):
+    def testSubVarDict1(self):
         global_env = {'l0': 0, 'l0sub': {'l1': 1, 'l1sub': {'l2': 2}}}
         self.assertEquals(0, expand('l0', global_env))
         self.assertEquals({'l1': 1, 'l1sub': {'l2': 2}}, expand('l0sub', global_env))
         self.assertEquals(1, expand('l0sub.l1', global_env))
         self.assertEquals(2, expand('l0sub.l1sub.l2', global_env))
 
-    def testSubVarDict(self):
+    def testSubVarDict2(self):
         global_env = {'avar': 'l1sub', 'l0sub': {'l1': 1, 'l1sub': {'l2': 2}}}
         self.assertEquals({'l2': 2}, expand('l0sub.avar', global_env))
         self.assertEquals(2, expand('l0sub.avar.l2', global_env))

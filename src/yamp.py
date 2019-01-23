@@ -122,10 +122,7 @@ def expand_str(tree, bindings):
         return tree # No variable to expand for this string
     if len(subvar) > 1:
         # It's a dot notation variable like 'host.name'
-        res_tuple = lookup(bindings, subvar[0])
-        if not res_tuple:
-            return tree
-        return subvar_lookup(tree, subvar[1:], res_tuple[0], bindings)
+        return subvar_lookup(tree, subvar[1:], tv[0], bindings)
     else:
         # An atomic variable line 'host'
         return tv[0]
