@@ -467,25 +467,25 @@ class TestYamp(unittest.TestCase):
         self.assertEquals(3, expand({'python': 'B + A'}, bindings))
 
     def testInclude(self):
-        bindings = {}
         global_environment['__FILE__'] = os.path.abspath(__file__)
+        global_environment['FILENAME'] = 'file2'
         self.assertEquals([
             '/mnt/virtualdisk2/wo/github.com/birchb1024/yamp/test/fixtures/file1.yaml',
             '/mnt/virtualdisk2/wo/github.com/birchb1024/yamp/test/fixtures/file2.yaml'],
              expand([
-                {'include': ['fixtures/file1.yaml', 'fixtures/file2.yaml']},
+                {'include': ['fixtures/file1.yaml', 'fixtures/{{FILENAME}}.yaml']},
                 '$f1',
                 '$f2'], global_environment))
 
     def testLoad(self):
-        bindings = {}
         global_environment['__FILE__'] = os.path.abspath(__file__)
+        global_environment['DIRNAME'] = 'fixtures'
         self.assertEquals(
-             [{'dev': {'webserver': {'hostname': 'web02', 'ip': '1.1.2.4'}},
+             [{'dev':   {'webserver': {'hostname': 'web02', 'ip': '1.1.2.4'}},
                'perf0': {'webserver': {'hostname': 'web01', 'ip': '1.1.2.3'}}},
-              {'qa1': {'webserver': {'hostname': 'web04', 'ip': '1.2.2.4'}},
-               'sit': {'webserver': {'hostname': 'web03', 'ip': '1.2.2.3'}}}],
-             expand({'load': 'fixtures/data1.yaml'}, global_environment))
+              {'qa1':   {'webserver': {'hostname': 'web04', 'ip': '1.2.2.4'}},
+               'sit':   {'webserver': {'hostname': 'web03', 'ip': '1.2.2.3'}}}],
+             expand({'load': '{{DIRNAME}}/data1.yaml'}, global_environment))
 
 if __name__ == '__main__':
     unittest.main()
