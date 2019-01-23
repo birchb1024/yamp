@@ -1,6 +1,6 @@
 = Yamp - Yet Another Macro Processor - for YAML
 Peter Birch <birchb1024@gmail.com>
-v0.1, 2019-01-01
+v0.1, 2019-01-23
 :toc: macro
 YAML is human friendly data serialization standard. footnote:[YAML stands for YAML Ain't Markup Language. See https://yaml.org/]  Yamp is a general-purpose macroprocessor for YAML files.  Both its input and output are YAML. It scans the input for symbols and makes substitutions and expansions on the output. yamp is 100% YAML so the syntax for defining and calling macros is YAML also.
 
@@ -116,18 +116,50 @@ This section describes the operation of the processor and the macros available.
 
 === Processing
 
-==== String interpolation
+When Yamp starts, it collects the command-line arguments and assigns the list to the variable `argv`. It then collects the process environment and assigns it to the map variable `env`. Yamp then reads the input file, attempts to parse the YAML and holds the resulting data as objects in memory. (If the YAML does not parse Yamp exits). It recursively scans the objects looking for strings which are the same as defined variables or which contain variables inside the string in curly braces. If it finds a match, it substitutes the object with the variable's value.
 
-Inside strings, yamp will insert expansions delimited by the double-curlies `{{` and `}}`. It's looking for variable names.
+When scanning maps, Yamp only substitutes variables for map keys which have embedded curly braces. 
 
-[source, YAML]
+Some special variables contain 'macros' - these must be within a map of their own, with a value containing a map of arguments which can contain anything. Normally a macro will contain more than the original, so we call this 'macro expansion' footnote:[But it could actually be a reduction!] ;-). 
+
+Yamp is looking for macro calls with this structure:
+
+[source,YAML]
 ----
-- define: {name: X, value: Christopher}
-- define: {name: AXA, value: 'A{{ X }}A'}
----
-- AXA
-# Produces AChristopherA
+<Macro>:
+   <Argument>: <value>
+   <Argument>: <value>
+    . . .
 ----
+
+Some macros have special functions and are built-in to Yamp. Those are describe in thie reference section.
+
+Here's examples of three kinds of things Yamp is scanning for replacement:
+
+.Simple Variables
+[source,YAML]
+----
+- Username
+- 'directory'
+----
+
+.Embeded Variables
+[source,YAML]
+----
+- 'The username is {{Username}}'
+----
+
+.Macro Calls
+[source,YAML]
+----
+- add_user:
+    name: Kevin
+    phone: (555) 098 880
+----
+
+When all the objects in the data have been scanned and in some cases, substituted, Yamp outputs the new object tree on the standard output in YAML format. Becuase YAML maps are unordered, the order of the keys and their corresponding values on output maybe be different from the input footnote:[Order-preservation may happen in a future version, but it's complicated].
+
+
 
 
 === Variables
@@ -165,6 +197,19 @@ Variables can contain any YAML collection ie, maps and lists.
 
 When yamp scans YAML it looks for variables in the lists and map values. When one is found it is replaced with the current value of variable binding. It searches the stack of macro bindings until the global environment is reached. If no bindng is found the string is output unchanged.
 
+===== Variables Embedded in Strings
+
+Inside strings, yamp will insert expansions delimited by the double-curlies `{{` and `}}`. It's looking for variable names.
+
+[source, YAML]
+----
+- define: {name: X, value: Christopher}
+- define: {name: AXA, value: 'A{{ X }}A'}
+---
+- AXA
+# Produces AChristopherA
+----
+
 ===== Interpolation with dot syntax
 
 If a potential variable contains periods, such as `data.height` the variable name is assumed to be the first item ie `data`. If a binding is found the value of the variable is assumed to be a collection and the sub-variable names are used to index the collection. The subvariable names are expanded. If the collection is a map, the sub-variable name is used as the key, if it is a list the subvariable must evaluate to an integer which is zero-indexed into the array.
@@ -185,11 +230,25 @@ If a potential variable contains periods, such as `data.height` the variable nam
 - db01
 ----
 
+===== Defining Multiple Variables
+
+Declarations don't need the 'name' and 'value' keys, and multiple variables are simultaneously bound.
+
+[source,YAML]
+----
+- define: { quick: 'shorthand' }
+- define:
+    name: Sara
+    age: 34
+    height: 123
+----
+
+
 ==== Macros
 
-===== Defining with `defmacro`
+Macros are re-usable templates of YAML objects that can be called up almost anywhere in the expansion. They differ from variables becuase they have parameters which are used to fill holes in the template. The are similar to functions, but unlike functions their entire text is always the result. By defining oft-repeated YAML fragments in macros repetitive work is avoided. Also a singular macro definition makes maintainance easy since there is a single defintion for a concept which canm be easily changed.
 
-Macros are re-usable templates of YAML data that can be called up almost anywhere in the expansion. They differ from variables becuase they have parameters which are used to fill holes in the template. The are similar to functions, but unlike functions their entire text is always the result. By defining oft-repeated YAML fragments in macros repetitive work is avoided. Also a singular macro definition makes maintainance easy since there is a single defintion for a concept which canm be easily changed.
+===== Defining with `defmacro`
 
 Macros are defined with the `define` macro which gives the macro a name and sepcifies the arguments it has and the expansion to return, the body.  A macro defintion looks like this:
 
@@ -210,7 +269,7 @@ defmacro:
   name: app-upgrade
   args: [appname, dbname]
   value:
-      Database upgrade:
+      Database upgrade for {{ appname }}:
         - stop application {{ appname }}
         - backup app database {{ dbname }}
         - upgrade the database {{ dbname }}
@@ -219,7 +278,7 @@ defmacro:
 ---
 - {app-upgrade: { appname: Netflix, dbname: db8812}}
 - app-upgrade:
-    appname: Netflix
+    appname: Stan
     dbname: postgres123123
 ----
 
@@ -227,22 +286,23 @@ Produces:
 
 [source,YAML]
 ----
-- Database upgrade:
+- Database upgrade for Netflix:
   - stop application Netflix
-  - backup app datbase db8812
+  - backup app database db8812
   - upgrade the database db8812
   - restart the application Netflix
   - smoke test Netflix
-- Database upgrade:
-  - stop application Netflix
-  - backup app datbase postgres123123
+- Database upgrade for Stan:
+  - stop application Stan
+  - backup app database postgres123123
   - upgrade the database postgres123123
-  - restart the application Netflix
-  - smoke test Netflix
+  - restart the application Stan
+  - smoke test Stan
 ----
 
 ==== Invoking/calling Macros
 
+As above, macro calls are just maps with a particular structure:
 [source, YAML]
 ----
 <macro name>: 
@@ -253,13 +313,13 @@ Produces:
 
 ==== Macros with variable arguments
 
-If the args are speficied as a string, all the actual arguments are passed in as a map.
+If the arguments in the definition are specified as a string, not a list, the string is the single argument. All the actual arguments at call-time are collected and bound to the variable in a map.
 
 [source,YAML]
 ----
 - defmacro:
     name: <the name of the macro>
-    args: <argument variable name>
+    args: <argument_variable_name>
     value:
       <Some YAML to be expanded>
 ----
@@ -268,6 +328,7 @@ Example:
 
 [source,YAML]
 ----
+# Definition
 - defmacro:
     name: package
     args: all
@@ -278,29 +339,190 @@ Example:
         state: all.state
 
 ---
+# Call
 package:
   doc: Install apache
   name: httpd
   state: latest
 ----
 
+Produces
+
+[source,YAML]
+----
+name: Install apache
+yum:
+  name: apache
+  state: latest
+----
+
+==== Nesting Macros
+
+Macro calls can be nested i.e. a macro can can contain a call to another in its arguments. Likewise macro definitions can be nested. The macro arguments are lexically scoped, a closure is collected at the time of definition. The macro call executes in the environment in the define-time closure. Macros can call themselves directly or indirectly.
+
+
+
 === Conditional Expansion with `if then else`
 
-.
+The `if` macro renders one value from a choice of two based on whether the condition argument is true. Where true means it's `true` or not `false` or `null`. The `then` argument is expanded if so, otherwise the `else` argument. It's not required to have both `then` and `else` arguments - when the condition requires the missing one, it expands to `null`.
+
+[source,YAML]
+----
+if: <Booleanish (true, false or null)>
+then: <value if true>
+else: <value if false or null>
+----
+
+Example:
+
+[source,YAML]
+----
+# Some variable
+define:
+  application:
+    name: CSIRAC
+    has_database: true
+    arch: valves
+---
+if: application.has_database
+then:
+  - shutdown database
+else:
+  - shutdown not required
+----
+
+Produces:
+
+[source,YAML]
+----
+- shutdown database
+----
+
+Example - short form
+
+[source,YAML]
+----
+if: true
+else: 'This value if false or Null'
+----
+
+Produces `null`
 
 === Testing equality with `==`
 
-.
+Macro expands to `true` or `false` if the items in the list are equal.
+
+[source,YAML]
+----
+{ ==: [arg1, arg2, ...] }
+----
+
+Example:
+
+[source,YAML]
+----
+{ ==: [1, 1, 10] }
+----
+
+Produces the value `false`.
+
 
 === Looping with `repeat`
 
-.
+This macro repeatedly expands the same object over and over, either returning a list or a map. If the `key` argument is present it returns a map, using the `key` argument as the item's key. This must have embedded variables derived from the looping execution otherwise there will be a key collision error.
+
+[source,YAML]
+----
+repeat:
+  for: <loop variable name>
+  in: [list of items]
+  # Optionally:
+  key: <string key with embedded varaibles in {{}}>
+  body: <any value>
+----
+
+
+Example - returning a dictionary:
+
+[source,YAML]
+----
+repeat:
+  for: environment_name
+  in:
+    - DEV1
+    - SVT
+    - PROD
+  key: 'Deploy_App_{{environment_name}}'
+  body:
+    stage: step
+----
+
+Produces:
+
+[source,YAML]
+----
+Deploy_App_DEV1:
+  stage: step
+Deploy_App_PROD:
+  stage: step
+Deploy_App_SVT:
+  stage: step
+----
+
+Example - returning a list:
+
+[source,YAML]
+----
+repeat:
+  for: loop_variable
+  in: {range: [1,3]}
+  body:
+    loop_variable: 'KEY_{{loop_variable}}'
+    some: step
+    another:
+----
+
+Produces:
+
+[source,YAML]
+----
+- another: null
+  loop_variable: KEY_1
+  some: step
+- another: null
+  loop_variable: KEY_2
+  some: step
+- another: null
+  loop_variable: KEY_3
+  some: step
+----
+
+=== Looping with `range`
+
+The `range` macro substitutes a list of numbers that can be used in `repeat` macros. (Or anywhere else a list of numbers is needed). It generates them from the `start` an `end` arguemtents.
+
+[source, YAML]
+----
+range: [3,5]
+----
+
+Produces `[3,4,5]`
+
 
 === Arithmetic with `+`
 
-.
+Add a list of numbers, int or float.
+
+[source, YAML]
+----
++: [1,2,4,8]
+----
+
+Produces `15`
 
 === Reading files with `include`
+
+Reads and expands the list of Yamp YAML files in order.
 
 [source, YAML]
 ----
@@ -311,27 +533,56 @@ include:
 
 === Reading data files with `load`
 
-.
-
-=== Evaluating Python expressions
+Read a single file of ordinary YAML data and returns the result in a list, one object for each 'doc'.
 
 [source, YAML]
 ----
-- {python: ' 2**10 '}
-# Produces
-- 1024
+{load: <filename>}
 ----
 
+=== Evaluating Python expressions
+
+This macro allows you to execute expressions inside the Python interpreter running Yamp. Yamp uses the Python `eval()` function, passing the current variable bindings to eval as the `locals`. This allows Python to access the Yamp-defined variables.
+
+[source, YAML]
+----
+- define: {FOO: 2}
+- python: ' FOO**10 '
+----
+
+Produces `1024`
+
+This macro is recommended for simple tasks about objects such as:
+
+* getting the length of a list,
+* converting the case of a string
+* getting the time
+
+Python cannot scan the Yamp environment hierarchy, so to use variables from other scopes, copy them to a variable in the scpe of the caller macro.
+
+Examples:
+
+[source, YAML]
+----
+- python: 'len(argv)'
+- python: 'env["USERNAME"].upper()'
+- python: 'datetime.datetime.now()'
+- python: 'iter(_ for _ in ()).throw(Exception("{} This is how to raise an exception!".format(env["USERNAME"])))'
+----
 
 
 === Builtin Variables
 
-==== `__FILE__` - the current source filename
+Yamp automatically populates some variables as it executes. These are they:
 
-==== `__parent__` - the environment binding parent
+* `__FILE__` - the current source filename
 
-==== `env` - process environment
+* `__parent__` - the current macro application's parent environment
 
-==== `argv` - command line arguments
+* `env` - the process environment
 
+* `argv` - the command line arguments
 
+== Using Yamp as a Python Module
+
+Maybe later...

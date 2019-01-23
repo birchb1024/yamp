@@ -12,6 +12,7 @@ import re
 import sys
 from pprint import pprint as pp
 import numbers
+import datetime
 from yaml import load, Loader, dump, load_all
 
 def pp(ignore):
@@ -154,6 +155,8 @@ def expand_repeat_dict(tree, bindings):
     for item in rang:
         loop_binding[var] = item
         keyvalue = expand(expand(key, loop_binding), loop_binding)
+        if keyvalue in result:
+            raise(Exception('ERROR: key "{}" duplication in {}'.format(keyvalue,tree)))
         result[keyvalue] = expand(expand(body, loop_binding), loop_binding)
     return result
 

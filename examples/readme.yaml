@@ -71,15 +71,69 @@ defmacro:
   name: app-upgrade
   args: [appname, dbname]
   value:
-      Database upgrade:
+      Database upgrade for {{ appname }}:
         - stop application {{ appname }}
-        - backup app datbase {{ dbname }}
+        - backup app database {{ dbname }}
         - upgrade the database {{ dbname }}
         - restart the application {{ appname }}
         - smoke test {{ appname }}
 ---
 - {app-upgrade: { appname: Netflix, dbname: db8812}}
 - app-upgrade:
-    appname: Netflix
+    appname: Stan
     dbname: postgres123123
+---
+# Definition
+- defmacro:
+    name: package
+    args: all
+    value:
+      name: all.doc
+      yum:
+        name: apache
+        state: all.state
+
+---
+# Call
+package:
+  doc: Install apache
+  name: httpd
+  state: latest
+---
+# Some variable 
+define:
+  application:
+    name: CSIRAC
+    has_database: true
+    arch: valves
+---
+if: application.has_database
+then:
+  - shutdown database
+else:
+  - shutdown not required
+---
+repeat:
+  for: environment_name
+  in:
+    - DEV1
+    - SVT
+    - PROD
+  key: 'Deploy_App_{{environment_name}}'
+  body:
+    stage: step
+---
++: [1,2,4,8, 100.0]
+---
+- ==: [1,1,1]
+---
+- define: {FOO: 2}
+- python: ' FOO**10 '
+---
+- python: 'len(argv)'
+- python: 'env["USERNAME"].upper()'
+- python: 'datetime.datetime.now()'
+# - python: 'iter(_ for _ in ()).throw(Exception("{} This is how to raise an exception!".format(env["USERNAME"])))'
+---
+range: [3 , 5]
 ...
