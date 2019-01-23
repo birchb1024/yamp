@@ -1,0 +1,8 @@
+---
+# Example of 'bulk' defines
+- define:
+    a: 1
+    b: { +: [3,4] }
+    c: '{{ a }} {{ a }}'
+    d: {python: 'b ** 2'}
+- '{{ a }} {{ b }} {{ c }} {{ d }}'

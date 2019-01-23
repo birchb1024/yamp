@@ -188,6 +188,19 @@ def expand_python(tree, bindings):
             raise(Exception('Syntax error too many keys in {}'.format(tree)))
     return eval('(' + statement + ')', globals(), bindings)
 
+def map_define(arglist, bindings):
+    """
+    define:
+        a: 1
+        b: 2
+    """
+    #             
+    if type(arglist) != dict:
+        raise(Exception('Syntax error bad define arguments {}'.format(arglist)))
+    for k,v in arglist.iteritems():
+        bindings[k] = expand(v, bindings)
+
+
 def expand(tree, bindings):
     """
     Recursivley substitute values in the symbol table bindings
@@ -283,6 +296,8 @@ def expand(tree, bindings):
             pp(('== define', tree))
             if len(tree.keys()) != 1:
                     raise(Exception('Syntax error too many keys in {}'.format(tree)))
+            if 'name' not in tree['define'] and 'value' not in tree['define']:
+                return map_define(tree['define'], bindings)
             for required in ['name', 'value']:
                 if required not in tree['define']:
                     raise(Exception('Syntax error "{}" missing in {}'.format(required, tree)))
