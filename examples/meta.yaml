@@ -1,0 +1,14 @@
+---
+# Examples about reflection and processor itself
+- defmacro:
+    name: display enclosing environment
+    args: null
+    value:
+      - '{{__parent__}}'
+- defmacro:
+    name: another
+    args: null
+    value:
+      display enclosing environment:
+---
+another:

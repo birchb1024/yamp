@@ -5,3 +5,5 @@
 - python: FOO.lower()
 - define: {name: FOO, value: {python: __FILE__.upper()}}
 - FOO =  {{ FOO }}
+- define: { alist: [1,2,3,4,5] }
+- python: 'len(alist)'
