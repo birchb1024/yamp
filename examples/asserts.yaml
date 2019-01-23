@@ -1,0 +1,23 @@
+---
+- defmacro:
+    name: assert_equal
+    args: [p1, p2]
+    value:
+      if:
+        ==: [p1, p2]
+      else:
+        python: 'iter(_ for _ in ()).throw(Exception("ASSERT FAILED {} != {}".format(p1,p2)))'
+---
+- assert_equal:
+    p1: 12
+    p2: 23
+---
+- defmacro:
+    name: assert
+    args: [that]
+    value:
+      if: that
+      else: { python: 'iter(_ for _ in ()).throw(Exception("ASSERT FAILED {}".format(that)))' }
+---
+assert: {that: true}
+assert: {that: false}
