@@ -28,6 +28,11 @@ class TestYamp(unittest.TestCase):
         self.assertEqual(expand({'quux': {'FOO': 'bar'}}, {'FOO':12, 'BAR': 22}) , {'quux': {'FOO': 'bar'}})
         self.assertEqual(expand([{'quux': {'FOO': 'bar'}}], {'FOO':12, 'BAR': 22}) ,  [{'quux': {'FOO': 'bar'}}])
 
+    def testExpandKeys(self):
+        self.assertEqual(expand({'varikey_{{FOO}}' : None}, {'FOO':12, 'BAR': 77}),  {'varikey_12': None})
+        self.assertEqual(expand({'varikey_{{FOO}}' : {'varikey2_{{BAR}}' : None}}, {'FOO':12, 'BAR': 77}),  {'varikey_12': {'varikey2_77' : None}})
+        self.assertEqual(expand({'{{FOO}}' : [1,3]}, {'FOO': 'range', 'BAR': 77}),  {'range': [1, 3]})
+
     def testScalarsBad(self):
         with self.assertRaises(Exception) as context:
             self.assertEqual([99], expand([{'define': {'name': 123, 'value': 23}}, 123], {}))

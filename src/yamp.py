@@ -345,7 +345,7 @@ def expand(tree, bindings):
                 return(expand(new_k(expand(v, bindings)), bindings))
             interp_k = interpolate(k, bindings)
             if interp_k != k:
-                # string containing {{ }} - onle these keys are expanded
+                # string containing {{ }} - only these keys are expanded
                 if interp_k in newdict:
                     raise Exception('ERROR: duplicate map key "{}" in {}'.format(interp_k, tree))
                 newdict[interp_k] = expand(v, bindings)
