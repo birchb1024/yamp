@@ -745,8 +745,13 @@ asciidoc.install(2);
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph"><p>YAML is human friendly data serialization standard. <span class="footnote"><br />[YAML stands for YAML Ain&#8217;t Markup Language. See <a href="https://yaml.org/">https://yaml.org/</a>]<br /></span>  Yamp is a general-purpose macroprocessor for YAML files.  Both its input and output are YAML. It scans the input for symbols and makes substitutions and expansions on the output. yamp is 100% YAML so the syntax for defining and calling macros is YAML also.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_tl_dr">TL;DR</h2>
+<div class="sectionbody">
 <div class="listingblock">
-<div class="title">TL;DR - Input</div>
+<div class="title">Input</div>
 <div class="content"><!-- Generator: GNU source-highlight 3.1.6
 by Lorenzo Bettini
 http://www.lorenzobettini.it
@@ -770,7 +775,25 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sect1">
 <h2 id="_get_started">Get Started</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Yamp is a Python 2.7 program contained in a single file. Assuming one has installed Python the program is run from the command-line giving the input file to parse as the first argument followed by optional arguments to the expansion. The expansion is written to the standard output:</p></div>
+<div class="paragraph"><p>Yamp is a Python 2.7 program contained in a single file. Hence one has to install Python and pyyaml.</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+First obtain a copy of the program. If you&#8217;re reading this you probably did this already!
+</p>
+</li>
+<li>
+<p>
+Install Python 2.7 <span class="footnote"><br />[This is for RedHat Linux, Windows is different.]<br /></span> : <code>$ sudo yum install -y python2</code>
+</p>
+</li>
+<li>
+<p>
+Then install the Python YAML module: <code>$ pip install pyyaml</code>
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>The program  is run from the command-line giving the input file to parse as the first argument followed by optional arguments to the expansion. The expansion is written to the standard output, which you normally redirect to another file.:</p></div>
 <div class="listingblock">
 <div class="title">Usage</div>
 <div class="content"><!-- Generator: GNU source-highlight 3.1.6
@@ -896,7 +919,49 @@ a macro call - block style
 <div class="paragraph"><p>This section describes the operation of the processor and the macros available.</p></div>
 <div class="sect2">
 <h3 id="_processing">Processing</h3>
-<div class="paragraph"><p>When Yamp starts, it collects the command-line arguments and assigns the list to the variable <code>argv</code>. It then collects the process environment and assigns it to the map variable <code>env</code>. Yamp then reads the input file, attempts to parse the YAML and holds the resulting data as objects in memory. (If the YAML does not parse Yamp exits). It recursively scans the objects looking for strings which are the same as defined variables or which contain variables inside the string in curly braces. If it finds a match, it substitutes the object with the variable&#8217;s value.</p></div>
+<div class="paragraph"><p>When Yamp starts, it collects the command-line arguments and assigns the list to the variable <code>argv</code>. It collects the process environment and assigns it to the map variable <code>env</code>. Yamp then reads the input file, attempts to parse the YAML and holds the resulting data as objects in memory. (If the YAML does not parse Yamp exits). It recursively scans the objects looking for strings which are the same as defined variables or which contain variables inside the string in curly braces. If it finds a match, it substitutes the object with the variable&#8217;s value.</p></div>
+<div class="paragraph"><p>Yamp is a substitution engine. It looks for things in it&#8217;s input an when it sees them replaces them with the substitution. The things to look for and the substitutions we call variables and bindings. For example:</p></div>
+<div class="tableblock">
+<table rules="all"
+width="50%"
+frame="border"
+cellspacing="0" cellpadding="4">
+<caption class="title">Table 1. Variables Bindings</caption>
+<col width="50%" />
+<col width="50%" />
+<thead>
+<tr>
+<th align="left" valign="top">Variable Name</th>
+<th align="left" valign="top">Value to substitute</th>
+</tr>
+</thead>
+<tfoot>
+<tr>
+<td align="left" valign="top"><p class="table">mygit_materials</p></td>
+<td align="left" valign="top"><div><div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #009900">args</span><span style="color: #990000">:</span> [branch_name]
+<span style="color: #009900">mygit</span><span style="color: #990000">:</span>
+<span style="color: #990000">        </span><span style="color: #009900">git</span><span style="color: #990000">:</span> mygit_repo_url
+<span style="color: #990000">        </span><span style="color: #009900">branch</span><span style="color: #990000">:</span> branch_name</tt></pre></div></div></div></td>
+</tr>
+</tfoot>
+<tbody>
+<tr>
+<td align="left" valign="top"><p class="table">mygit_repo_url</p></td>
+<td align="left" valign="top"><div><div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #009900">http</span><span style="color: #990000">:</span>//my.example.org/mygit.git</tt></pre></div></div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
 <div class="paragraph"><p>When scanning maps, Yamp only substitutes variables for map keys which have embedded curly braces.</p></div>
 <div class="paragraph"><p>Some special variables contain <em>macros</em> - these must be within a map of their own, with a value containing a map of arguments which can contain anything. Normally a macro will contain more than the original, so we call this <em>macro expansion</em> <span class="footnote"><br />[But it could actually be a reduction!]<br /></span> ;-).</p></div>
 <div class="paragraph"><p>Yamp is looking for macro calls with this structure:</p></div>
@@ -1400,7 +1465,7 @@ http://www.gnu.org/software/src-highlite -->
 <div id="footer">
 <div id="footer-text">
 Version 0.1<br />
-Last updated 2019-01-23 21:34:31 AEDT
+Last updated 2019-01-24 13:36:29 AEDT
 </div>
 </div>
 </body>

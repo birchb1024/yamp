@@ -4,7 +4,9 @@ v0.1, 2019-01-23
 :toc: macro
 YAML is human friendly data serialization standard. footnote:[YAML stands for YAML Ain't Markup Language. See https://yaml.org/]  Yamp is a general-purpose macroprocessor for YAML files.  Both its input and output are YAML. It scans the input for symbols and makes substitutions and expansions on the output. yamp is 100% YAML so the syntax for defining and calling macros is YAML also.
 
-.TL;DR - Input
+== TL;DR
+
+.Input
 [source, YAML]
 ----
 - defmacro:
@@ -24,7 +26,15 @@ YAML is human friendly data serialization standard. footnote:[YAML stands for YA
 
 == Get Started
 
-Yamp is a Python 2.7 program contained in a single file. Assuming one has installed Python the program is run from the command-line giving the input file to parse as the first argument followed by optional arguments to the expansion. The expansion is written to the standard output:
+Yamp is a Python 2.7 program contained in a single file. Hence one has to install Python and pyyaml.
+
+* First obtain a copy of the program. If you're reading this you probably did this already!
+
+* Install Python 2.7 footnote:[This is for RedHat Linux, Windows is different.] : `$ sudo yum install -y python2`
+
+* Then install the Python YAML module: `$ pip install pyyaml`
+
+The program  is run from the command-line giving the input file to parse as the first argument followed by optional arguments to the expansion. The expansion is written to the standard output, which you normally redirect to another file.:
 
 .Usage
 [source,bash]
@@ -116,7 +126,36 @@ This section describes the operation of the processor and the macros available.
 
 === Processing
 
-When Yamp starts, it collects the command-line arguments and assigns the list to the variable `argv`. It then collects the process environment and assigns it to the map variable `env`. Yamp then reads the input file, attempts to parse the YAML and holds the resulting data as objects in memory. (If the YAML does not parse Yamp exits). It recursively scans the objects looking for strings which are the same as defined variables or which contain variables inside the string in curly braces. If it finds a match, it substitutes the object with the variable's value.
+
+When Yamp starts, it collects the command-line arguments and assigns the list to the variable `argv`. It collects the process environment and assigns it to the map variable `env`. Yamp then reads the input file, attempts to parse the YAML and holds the resulting data as objects in memory. (If the YAML does not parse Yamp exits). It recursively scans the objects looking for strings which are the same as defined variables or which contain variables inside the string in curly braces. If it finds a match, it substitutes the object with the variable's value.
+
+Yamp is a substitution engine. It looks for things in it's input an when it sees them replaces them with the substitution. The things to look for and the substitutions we call variables and bindings. For example:
+
+.Variables Bindings
+[options="header,footer",width="50%"]
+|=======================
+|Variable Name|Value to substitute
+|mygit_repo_url
+
+a|
+[source,YAML]
+----
+http://my.example.org/mygit.git
+----
+
+|mygit_materials
+
+a|
+[source,YAML]
+----
+args: [branch_name]
+mygit:
+        git: mygit_repo_url
+        branch: branch_name
+----
+
+|=======================
+
 
 When scanning maps, Yamp only substitutes variables for map keys which have embedded curly braces. 
 
