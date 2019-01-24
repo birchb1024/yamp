@@ -2,6 +2,18 @@
 # Macros with variable number or arguments
 
 - defmacro:
+    name: listy
+    args: all
+    value:
+      - one: all.0
+      - two: all.1
+---
+listy:
+  - [a, b, c]
+  - 77
+
+---
+- defmacro:
     name: package
     args: all
     value:

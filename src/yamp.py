@@ -57,8 +57,8 @@ def new_macro(tree, bindings):
     def apply(args):
         pp("to apply: {} to {} with {}".format(name, args, bindings))
         pp(('**apply', name, parameters, args))
-        if args and type(args) != dict:
-            raise(Exception('Expecting dict args for {}, got: {}'.format(name, args)))
+        if type(parameters) == list and args and type(args) != dict:
+            raise(Exception('Expecting dict args for {} [ {} ], got: {}'.format(name, parameters, args)))
         if type(parameters) == list and len(parameters) == 0  and args:
             raise(Exception('Too many args for {}: {}'.format(name, args)))
         if type(parameters) == list and parameters and args:
@@ -202,6 +202,33 @@ def map_define(arglist, bindings):
     bindings.update(definitions)
     return None
 
+def flatten_list(listy, bindings):
+    """
+    Recursively flatten a list of lists. Lists in maps are not flattened.
+    """
+    result = []
+    for rawitem in listy:
+        item = expand(rawitem, bindings)
+        if not type(item) == list:
+            result.append(item) # atoms or maps
+        else:
+            result.extend(flatten_list(item, bindings)) # list
+    return result
+
+def merge_maps(listy, bindings):
+    """
+    combine multiple maps into one. later maps overwrite earlier.
+    """
+    result = {}
+    for rawitem in listy:
+        item = expand(rawitem, bindings)
+        if not type(item) == dict:
+            raise(Exception('Error: non-map passed to merge "{}" from {}'.format(item, rawitem)))
+        else:
+            for k,v in item.iteritems():
+                result[k] = v
+    return result
+
 
 def expand(tree, bindings):
     """
@@ -257,6 +284,20 @@ def expand(tree, bindings):
                     raise(Exception('Was expecting number in {}'.format(tree)))
                 sum += item_ex
             return sum
+
+        if 'flatten' in tree.keys():
+            if len(tree.keys()) != 1:
+                    raise(Exception('Syntax error too many keys in {}'.format(tree)))
+            if type(tree['flatten']) != list:
+                    raise(Exception('Syntax error was expecting list in {}'.format(tree)))
+            return flatten_list(tree['flatten'], bindings)
+
+        if 'merge' in tree.keys():
+            if len(tree.keys()) != 1:
+                    raise(Exception('Syntax error too many keys in {}'.format(tree)))
+            if type(tree['merge']) != list:
+                    raise(Exception('Syntax error was expecting list in {}'.format(tree)))
+            return merge_maps(tree['merge'], bindings)
 
         if 'range' in tree.keys():
             statement = tree['range']

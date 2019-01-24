@@ -218,6 +218,16 @@ class TestYamp(unittest.TestCase):
                     'value' : 'all.p2.2'}},
                 {'vmac': {'p1': 1, 'p2': ['p1',2,{'a': 3, 'b': 4}]}}], {'a': 33}))
 
+    def testMacroVarargsList(self):
+        self.assertEquals(
+            [33],
+            expand([
+                {'defmacro':
+                    {'name' : 'vmac',
+                    'args' : 'all',
+                    'value' : 'all.0' }},
+                {'vmac': ['a', 'b']}], {'a': 33}))
+
     def testMacroInDict(self):
         self.assertEquals(
             [{1: None}, [1, [1, 2, {'a': 3, 'b': 4}]]],
@@ -297,7 +307,6 @@ class TestYamp(unittest.TestCase):
         global_env = {'l0': 0, 'l0sub': {'l1': 1, 'l1sub': {'l2': 2}}}
         with self.assertRaises(Exception) as context:
             expand('l0sub.l1sub.ZZZ', global_env)
-        pp(context.exception.message)
         self.assertTrue('Subvariable' in context.exception.message)
 
     def testSubVarList(self):
@@ -518,6 +527,25 @@ class TestYamp(unittest.TestCase):
               {'qa1':   {'webserver': {'hostname': 'web04', 'ip': '1.2.2.4'}},
                'sit':   {'webserver': {'hostname': 'web03', 'ip': '1.2.2.3'}}}],
              expand({'load': '{{DIRNAME}}/data1.yaml'}, global_environment))
+
+    def testFlattenList(self):
+        self.assertEquals([1,2,3,4], flatten_list([1,[2],[[3]],[[[4]]]], {}))
+        self.assertEquals([1,'a',3,4], flatten_list([1,['a'],[[3]],[[[4]]]], {}))
+        self.assertEquals([1,2,{'x':22},4], flatten_list([1,[2],[[{'x':22}]],[[[4]]]], {}))
+
+    def testFlatten(self):
+        self.assertEquals(
+             [1,2,3],
+             expand({'flatten': [1,[2],[[3]]]}, {}))
+
+    def testMergeDict(self):
+        self.assertEquals({'a':1, 'b':2, 'c':3}, merge_maps([{'a':1},{'b':2},{'c':3}],{}))
+        self.assertEquals({'a':1, 'b':2, 'c':3}, merge_maps([{'a':1, 'c':99},{'b':2},{'c':3}],{}))
+
+    def testMergeDictBad(self):
+        with self.assertRaises(Exception) as context:
+            merge_maps([12,{'a':1, 'c':99},{'b':2},{'c':3}],{})
+        self.assertTrue('Error: non-map' in context.exception.message)
 
 if __name__ == '__main__':
     unittest.main()

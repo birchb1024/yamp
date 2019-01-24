@@ -1353,6 +1353,96 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Produces <code>[3,4,5]</code></p></div>
 </div>
 <div class="sect2">
+<h3 id="_combining_lists_with_code_flatten_code">Combining Lists with <code>flatten</code></h3>
+<div class="paragraph"><p>Sometimes you need to combine lists, perhaps from different macro expansions. The <code>flatten</code> macro combines multiple lists into a single, flat, list. The flattening is recursive. Syntax:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #009900">flatten</span><span style="color: #990000">:</span> &lt; list of objects &gt;</tt></pre></div></div>
+<div class="paragraph"><p>For example:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #009900">define</span><span style="color: #990000">:</span> {home-directories: [/home/elvis, /home/madonna]}
+<span style="font-weight: bold"><span style="color: #000000">---</span></span>
+<span style="color: #009900">flatten</span><span style="color: #990000">:</span> [[home-directories], /var, /log]</tt></pre></div></div>
+<div class="paragraph"><p>Produces:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">-</span> /home/elvis
+<span style="color: #990000">-</span> /home/madonna
+<span style="color: #990000">-</span> /var
+<span style="color: #990000">-</span> /log</tt></pre></div></div>
+</div>
+<div class="sect2">
+<h3 id="_combining_maps_with_code_merge_code">Combining Maps with <code>merge</code></h3>
+<div class="paragraph"><p>The <code>merge</code> macro takes a list of maps and merges them togther to make a single map. When there are keys shared between the supplied maps, the program uses the last on seen, it over-writes the earlier value. Hence the order in the list dictates the priority. Syntax:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #009900">merge</span><span style="color: #990000">:</span> &lt; list of maps &gt;</tt></pre></div></div>
+<div class="paragraph"><p>For example:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #009900">merge</span><span style="color: #990000">:</span>
+<span style="color: #990000">  -</span> { a : <span style="color: #993399">1</span> }
+<span style="color: #990000">  -</span> { b : <span style="color: #993399">2</span> }
+<span style="color: #990000">  -</span> { c : <span style="color: #993399">3</span> , a : -<span style="color: #993399">1</span>}</tt></pre></div></div>
+<div class="paragraph"><p>Produces:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #009900">a</span><span style="color: #990000">:</span> -<span style="color: #993399">1</span>
+<span style="color: #009900">b</span><span style="color: #990000">:</span> <span style="color: #993399">2</span>
+<span style="color: #009900">c</span><span style="color: #990000">:</span> <span style="color: #993399">3</span></tt></pre></div></div>
+<div class="paragraph"><p>A more complex example shows combining data from multiple sources:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">- </span><span style="color: #009900">define</span><span style="color: #990000">:</span>
+    network-data:
+<span style="color: #990000">      </span><span style="color: #009900">hostname</span><span style="color: #990000">:</span> tetris.games.org
+<span style="color: #990000">- </span><span style="color: #009900">defmacro</span><span style="color: #990000">:</span>
+<span style="color: #990000">    </span><span style="color: #009900">name</span><span style="color: #990000">:</span> mymacro
+<span style="color: #990000">    </span><span style="color: #009900">args</span><span style="color: #990000">:</span> [arg1]
+<span style="color: #990000">    </span><span style="color: #009900">value</span><span style="color: #990000">:</span>
+<span style="color: #990000">      </span><span style="color: #009900">hostname</span><span style="color: #990000">:</span> arg1
+<span style="color: #990000">      </span><span style="color: #009900">ip</span><span style="color: #990000">:</span> <span style="color: #993399">1.1</span>.<span style="color: #993399">1.1</span>
+<span style="color: #990000">      </span><span style="color: #009900">app</span><span style="color: #990000">:</span> tetris
+<span style="color: #990000">- </span><span style="color: #009900">merge</span><span style="color: #990000">:</span>
+<span style="color: #990000">  -</span> { hostname: tetris.home.org }
+<span style="color: #990000">  -</span> { site: Kansas }
+<span style="color: #990000">  - </span><span style="color: #009900">mymacro</span><span style="color: #990000">:</span>
+<span style="color: #990000">      </span><span style="color: #009900">arg1</span><span style="color: #990000">:</span> tetris
+<span style="color: #990000">  -</span> network-data</tt></pre></div></div>
+<div class="paragraph"><p>Which boils down to:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">- </span><span style="color: #009900">app</span><span style="color: #990000">:</span> tetris
+<span style="color: #990000">  </span><span style="color: #009900">hostname</span><span style="color: #990000">:</span> tetris.games.org
+<span style="color: #990000">  </span><span style="color: #009900">ip</span><span style="color: #990000">:</span> <span style="color: #993399">1.1</span>.<span style="color: #993399">1.1</span>
+<span style="color: #990000">  </span><span style="color: #009900">site</span><span style="color: #990000">:</span> Kansas</tt></pre></div></div>
+</div>
+<div class="sect2">
 <h3 id="_arithmetic_with_code_code">Arithmetic with <code>+</code></h3>
 <div class="paragraph"><p>Add a list of numbers, int or float.</p></div>
 <div class="listingblock">
@@ -1465,7 +1555,7 @@ http://www.gnu.org/software/src-highlite -->
 <div id="footer">
 <div id="footer-text">
 Version 0.1<br />
-Last updated 2019-01-24 13:36:29 AEDT
+Last updated 2019-01-24 19:40:01 AEDT
 </div>
 </div>
 </body>

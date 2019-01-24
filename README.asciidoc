@@ -547,6 +547,93 @@ range: [3,5]
 
 Produces `[3,4,5]`
 
+=== Combining Lists with `flatten`
+
+Sometimes you need to combine lists, perhaps from different macro expansions. The `flatten` macro combines multiple lists into a single, flat, list. The flattening is recursive. Syntax:
+
+[source,YAML]
+----
+flatten: < list of objects >
+----
+
+For example:
+
+[source,YAML]
+----
+define: {home-directories: [/home/elvis, /home/madonna]}
+---
+flatten: [[home-directories], /var, /log]
+----
+
+Produces:
+
+[source,YAML]
+----
+- /home/elvis
+- /home/madonna
+- /var
+- /log
+----
+
+=== Combining Maps with `merge`
+
+The `merge` macro takes a list of maps and merges them togther to make a single map. When there are keys shared between the supplied maps, the program uses the last on seen, it over-writes the earlier value. Hence the order in the list dictates the priority. Syntax:
+
+[source,YAML]
+----
+merge: < list of maps >
+----
+
+For example:
+
+[source,YAML]
+----
+merge:
+  - { a : 1 }
+  - { b : 2 }
+  - { c : 3 , a : -1}
+----
+
+Produces:
+
+[source,YAML]
+----
+a: -1
+b: 2
+c: 3
+----
+
+A more complex example shows combining data from multiple sources:
+
+[source,YAML]
+----
+- define:
+    network-data:
+      hostname: tetris.games.org
+- defmacro:
+    name: mymacro
+    args: [arg1]
+    value:
+      hostname: arg1
+      ip: 1.1.1.1
+      app: tetris
+- merge:
+  - { hostname: tetris.home.org }
+  - { site: Kansas }
+  - mymacro:
+      arg1: tetris
+  - network-data
+----
+
+Which boils down to:
+
+[source,YAML]
+----
+- app: tetris
+  hostname: tetris.games.org
+  ip: 1.1.1.1
+  site: Kansas
+----
 
 === Arithmetic with `+`
 
