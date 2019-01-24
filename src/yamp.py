@@ -11,6 +11,7 @@ import os
 import re
 import sys
 from pprint import pprint as pp
+import pprint
 import numbers
 import datetime
 from yaml import load, Loader, dump, load_all
@@ -312,6 +313,8 @@ def expand(tree, bindings):
             return expand_repeat(tree, bindings)
 
         if 'defmacro' in tree.keys():
+            if not tree['defmacro']:
+                raise(Exception('Syntax error empty defmacro {}'.format(tree)))
             for required in ['name', 'args', 'value']:
                 if required not in tree['defmacro']:
                     raise(Exception('Syntax error {} missing in {}'.format(required, tree)))
@@ -341,7 +344,7 @@ def expand(tree, bindings):
             new_k = expand(k, bindings)
             if type(new_k) == type(expand):
                 if len(tree.keys()) != 1:
-                    raise Exception('ERROR: too many keys in macro call {}'.format(tree))
+                    raise Exception('ERROR: too many keys in macro call "{}" {}'.format(k, tree.keys()))
                 return(expand(new_k(expand(v, bindings)), bindings))
             interp_k = interpolate(k, bindings)
             if interp_k != k:
