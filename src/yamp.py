@@ -101,7 +101,6 @@ def subvar_lookup(original, vars_list, tree, bindings):
         first = vars_list[0]
     if type(first) not in (str, int):
         raise(YampException('Subvariable "{}" not a string or int in {}'.format(first, original)))
-    pprint.pprint(vars_list[0])
     if type(tree) == dict:
         if not first in tree.keys():
             raise(YampException('Subvariable "{}" not found in {}'.format(first, original)))
