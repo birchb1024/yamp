@@ -7,3 +7,21 @@
 - FOO =  {{ FOO }}
 - define: { alist: [1,2,3,4,5] }
 - python: 'len(alist)'
+---
+define: {top_variable: 214}
+---
+defmacro:
+  name: amacro
+  args:
+  value:
+    top_level_macro:
+---
+defmacro: 
+  name: top_level_macro
+  args:
+  value:
+    - top_variable
+    - python: 'lookup({}, "top_variable")'
+---
+#- quote: '__ENV__'
+amacro:
