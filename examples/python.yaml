@@ -7,21 +7,19 @@
 - FOO =  {{ FOO }}
 - define: { alist: [1,2,3,4,5] }
 - python: 'len(alist)'
+- argv
 ---
-define: {top_variable: 214}
+defmacro: 
+  name: top_level_macro
+  args:
+  value: 
+    python: 'lookup(__parent__, "argv")[0][1]'
 ---
 defmacro:
   name: amacro
   args:
   value:
+    #- python: 'len(argv)' # NameError: name 'argv' is not defined
     top_level_macro:
 ---
-defmacro: 
-  name: top_level_macro
-  args:
-  value:
-    - top_variable
-    - python: 'lookup({}, "top_variable")'
----
-#- quote: '__ENV__'
 amacro:

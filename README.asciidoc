@@ -668,12 +668,13 @@ Read a single file of ordinary YAML data and returns the result in a list, one o
 
 === Evaluating Python expressions
 
-This macro allows you to execute expressions inside the Python interpreter running Yamp. Yamp uses the Python `eval()` function, passing the current variable bindings to eval as the `locals`. This allows Python to access the Yamp-defined variables.
+This macro allows you to execute expressions inside the Python interpreter running Yamp. Yamp uses the Python `eval()` function, passing the current variable bindings to eval as the `locals`. This allows Python to access the Yamp-defined variables. Python cannot see bindings in the environment hierarchy directly, so to resolve variables in higher environments use the Yamp lookup function as in `lookup(__parent__, 'variablename')[0]`` function. Warning - Yamp internals can change at any time.  
 
 [source, YAML]
 ----
-- define: {FOO: 2}
-- python: ' FOO**10 '
+define: {FOO: 2}
+---
+python: ' FOO**10 '
 ----
 
 Produces `1024`
@@ -684,15 +685,18 @@ This macro is recommended for simple tasks about objects such as:
 * converting the case of a string
 * getting the time
 
-Python cannot scan the Yamp environment hierarchy, so to use variables from other scopes, copy them to a variable in the scpe of the caller macro.
-
 Examples:
 
 [source, YAML]
 ----
 - python: 'len(argv)'
-- python: 'env["USERNAME"].upper()'
+
+- python: 'env["USERNAME"].upper()' 
+
 - python: 'datetime.datetime.now()'
+
+- python: 'lookup(__parent__, "argv")[0][0]' # ==> yamp.py
+
 - python: 'iter(_ for _ in ()).throw(Exception("{} This is how to raise an exception!".format(env["USERNAME"])))'
 ----
 
