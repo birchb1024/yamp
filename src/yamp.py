@@ -40,6 +40,12 @@ def interpolate(astring, bindings):
     return(''.join(rebound))
 
 def lookup(env, key):
+    """
+    Search an environment stack for a binding of key to a value, 
+    following __parent__ links to higher environment. 
+    If nothing, return None. 
+    # TODO Make this part of a dict-like class.
+    """
     while True:
         if key in env:
             return (env[key],)
