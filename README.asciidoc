@@ -1,6 +1,6 @@
 = Yamp - Yet Another Macro Processor - for YAML
 Peter Birch <birchb1024@gmail.com>
-v0.1, 2019-01-23
+v0.1, 2019-01-26
 :toc: macro
 YAML is human friendly data serialization standard. footnote:[YAML stands for YAML Ain't Markup Language. See https://yaml.org/]  Yamp is a general-purpose macroprocessor for YAML files.  Both its input and output are YAML. It scans the input for symbols and makes substitutions and expansions on the output. yamp is 100% YAML so the syntax for defining and calling macros is YAML also.
 
@@ -26,11 +26,11 @@ YAML is human friendly data serialization standard. footnote:[YAML stands for YA
 
 == Get Started
 
-Yamp is a Python 2.7 program contained in a single file. Hence one has to install Python and pyyaml.
+Yamp is a Python 2.7 program contained in a single file. Hence one has to install https://www.python.org/:[Python] and the https://pypi.org/project/PyYAML/:[pyyaml] module.
 
-* First obtain a copy of the program. If you're reading this you probably did this already!
+* First obtain a copy of the Yamp program. If you're reading this you probably did this already!
 
-* Install Python 2.7 footnote:[This is for RedHat Linux, Windows is different.] : `$ sudo yum install -y python2`
+* Install Python 2.7 footnote:[This is for RedHat Linux.] : `$ sudo yum install -y python2`
 
 * Then install the Python YAML module: `$ pip install pyyaml`
 
@@ -716,3 +716,12 @@ Yamp automatically populates some variables as it executes. These are they:
 == Using Yamp as a Python Module
 
 Maybe later...
+
+== Maintenance of Yamp
+
+=== Code
+Run the unit tests with `python test/test_expand_01.py`. 
+
+=== Updating This Document
+
+This document is in http://www.methods.co.nz/asciidoc/:[AsciiDoc] format. Use the Linux Asciidoc packages. To Highlight the YAML syntax also install source-highlight and the https://gist.github.com/zeroyonichihachi/c4952b355bb7a27552a5f23e0c53b65f#file-yaml-lang:[YAML syntax module]. Save the HTML version in `doc/README.html`.
