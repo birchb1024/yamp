@@ -54,6 +54,7 @@ pipelines:
 #  - 32
 #- - 99
 ---
+- define: { zero: 0 }
 - define:
     name: data
     value:
@@ -63,9 +64,11 @@ pipelines:
         - type: database
           hostname: db01
           ip: 1.1.2.2
+- define: {data.1 : Wednesday}
+---
+- data.1
 - data.1.hostname
-# produces
-- db01
+- data.zero.hostname
 ---
 defmacro:
   name: app-upgrade

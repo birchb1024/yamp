@@ -285,6 +285,14 @@ class TestYamp(unittest.TestCase):
                         {'inner': None}, 'y']}},
                 {'outer': {'y': 42}}], {'x': 33, 'y': 34}))
 
+    def testSubVarExactFirst(self):
+        global_env = {'l0sub.l1sub.l2': 'takes precedence',
+                       'l0sub.l1sub.': 99, 
+                        'l0sub': {'l1': 1, 'l1sub': {'l2': 2}}}
+        self.assertEquals(99, expand('l0sub.l1sub.', global_env))
+        self.assertEquals('takes precedence', expand('l0sub.l1sub.l2', global_env))
+        self.assertEquals({'l1': 1, 'l1sub': {'l2': 2}}, expand('l0sub', global_env))
+
     def testSubVarDict1(self):
         global_env = {'l0': 0, 'l0sub': {'l1': 1, 'l1sub': {'l2': 2}}}
         self.assertEquals(0, expand('l0', global_env))

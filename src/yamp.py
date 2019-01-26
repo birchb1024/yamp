@@ -126,6 +126,10 @@ def subvar_lookup(original, vars_list, tree, bindings):
 
 def expand_str(tree, bindings):
     pp(['*** es', tree])
+    tv = lookup(bindings, tree)
+    if tv: 
+        return tv[0] # a variable like 'a.c.e' matches first
+    # no, look for subvariables. 
     subvar = tree.split('.')
     pp(['subvar', subvar])
     tv = lookup(bindings, subvar[0])

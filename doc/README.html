@@ -1054,13 +1054,15 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="sect4">
 <h5 id="_interpolation_with_dot_syntax">Interpolation with dot syntax</h5>
-<div class="paragraph"><p>If a potential variable contains periods, such as <code>data.height</code> the variable name is assumed to be the first item ie <code>data</code>. If a binding is found the value of the variable is assumed to be a collection and the sub-variable names are used to index the collection. The subvariable names are expanded. If the collection is a map, the sub-variable name is used as the key, if it is a list the subvariable must evaluate to an integer which is zero-indexed into the array.</p></div>
+<div class="paragraph"><p>If a string contains periods, such as <code>data.height</code> Yamp looks for a exactly matching variable name, which is expanded with the value. Otherwise the first item (ie <code>data</code>) is assumed to be a variable name.</p></div>
+<div class="paragraph"><p>If a binding for the first part is found the value of the variable is assumed to be a collection. The other items which we call sub-variables are used to index the collection (ie <code>height</code>). If the collection is a map, the sub-variable name is used as the key, if it is a list the subvariable must evaluate to an integer which is zero-indexed into the list. These subvariable names are also expanded before use so other variables can be used to index the collection.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.8
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #990000">- </span><span style="color: #009900">define</span><span style="color: #990000">:</span>
+<pre><tt><span style="color: #990000">- </span><span style="color: #009900">define</span><span style="color: #990000">:</span> { zero: <span style="color: #993399">0</span> }
+<span style="color: #990000">- </span><span style="color: #009900">define</span><span style="color: #990000">:</span>
 <span style="color: #990000">    </span><span style="color: #009900">name</span><span style="color: #990000">:</span> data
 <span style="color: #990000">    </span><span style="color: #009900">value</span><span style="color: #990000">:</span>
 <span style="color: #990000">        - </span><span style="color: #009900">type</span><span style="color: #990000">:</span> webserver
@@ -1069,9 +1071,20 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #990000">        - </span><span style="color: #009900">type</span><span style="color: #990000">:</span> database
 <span style="color: #990000">          </span><span style="color: #009900">hostname</span><span style="color: #990000">:</span> db01
 <span style="color: #990000">          </span><span style="color: #009900">ip</span><span style="color: #990000">:</span> <span style="color: #993399">1.1</span>.<span style="color: #993399">2.2</span>
+<span style="color: #990000">- </span><span style="color: #009900">define</span><span style="color: #990000">:</span> {data.<span style="color: #993399">1</span> : Wednesday}
+<span style="font-weight: bold"><span style="color: #000000">---</span></span>
+<span style="color: #990000">-</span> data.<span style="color: #993399">1</span>
 <span style="color: #990000">-</span> data.<span style="color: #993399">1</span>.hostname
-<span style="font-style: italic"><span style="color: #9A1900"># produces</span></span>
-<span style="color: #990000">-</span> db01</tt></pre></div></div>
+<span style="color: #990000">-</span> data.zero.hostname</tt></pre></div></div>
+<div class="paragraph"><p>Produces</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">-</span> Wednesday
+<span style="color: #990000">-</span> db01
+<span style="color: #990000">-</span> web01</tt></pre></div></div>
 </div>
 <div class="sect4">
 <h5 id="_defining_multiple_variables">Defining Multiple Variables</h5>
@@ -1576,7 +1589,7 @@ http://www.gnu.org/software/src-highlite -->
 <div id="footer-text">
 Version 0.1<br />
 Last updated
- 2019-01-26 14:56:25 AEDT
+ 2019-01-26 23:37:13 AEDT
 </div>
 </div>
 </body>

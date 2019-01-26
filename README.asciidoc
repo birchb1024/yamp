@@ -251,10 +251,13 @@ Inside strings, yamp will insert expansions delimited by the double-curlies `{{`
 
 ===== Interpolation with dot syntax
 
-If a potential variable contains periods, such as `data.height` the variable name is assumed to be the first item ie `data`. If a binding is found the value of the variable is assumed to be a collection and the sub-variable names are used to index the collection. The subvariable names are expanded. If the collection is a map, the sub-variable name is used as the key, if it is a list the subvariable must evaluate to an integer which is zero-indexed into the array.
+If a string contains periods, such as `data.height` Yamp looks for a exactly matching variable name, which is expanded with the value. Otherwise the first item (ie `data`) is assumed to be a variable name.
+
+If a binding for the first part is found the value of the variable is assumed to be a collection. The other items which we call sub-variables are used to index the collection (ie `height`). If the collection is a map, the sub-variable name is used as the key, if it is a list the subvariable must evaluate to an integer which is zero-indexed into the list. These subvariable names are also expanded before use so other variables can be used to index the collection. 
 
 [source, YAML]
 ----
+- define: { zero: 0 }
 - define:
     name: data
     value:
@@ -264,9 +267,20 @@ If a potential variable contains periods, such as `data.height` the variable nam
         - type: database
           hostname: db01
           ip: 1.1.2.2
+- define: {data.1 : Wednesday}
+---
+- data.1
 - data.1.hostname
-# produces
+- data.zero.hostname
+----
+
+Produces
+
+[source, YAML]
+----
+- Wednesday
 - db01
+- web01
 ----
 
 ===== Defining Multiple Variables
