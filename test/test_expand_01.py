@@ -510,9 +510,11 @@ class TestYamp(unittest.TestCase):
     def testInclude(self):
         global_environment['__FILE__'] = os.path.abspath(__file__)
         global_environment['FILENAME'] = 'file2'
+        current_directory = os.path.dirname(os.path.abspath(__file__))
+
         self.assertEquals([
-            '/mnt/virtualdisk2/wo/github.com/birchb1024/yamp/test/fixtures/file1.yaml',
-            '/mnt/virtualdisk2/wo/github.com/birchb1024/yamp/test/fixtures/file2.yaml'],
+            os.path.join(current_directory, 'fixtures/file1.yaml'),
+            os.path.join(current_directory, 'fixtures/file2.yaml')],
              expand([
                 {'include': ['fixtures/file1.yaml', 'fixtures/{{FILENAME}}.yaml']},
                 '$f1',
