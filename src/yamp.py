@@ -266,10 +266,15 @@ def expand(tree, bindings):
         for item in tree:
             expanded = expand(item, bindings)
             if expanded != None:
-                newlist.append(expand(expanded, bindings))
+                newlist.append(expanded)
         return newlist
     elif type(tree) == dict:
         newdict = {}
+
+        if 'quote' in tree.keys():
+            if len(tree.keys()) != 1:
+                    raise(YampException('Syntax error too many keys in {}'.format(tree)))
+            return tree['quote']
 
         if '==' in tree.keys():
             if len(tree.keys()) != 1:

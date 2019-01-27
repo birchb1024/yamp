@@ -1,6 +1,6 @@
 = Yamp - Yet Another Macro Processor - for YAML
 Peter Birch <birchb1024@gmail.com>
-v0.1, 2019-01-26
+v0.1, 2019-01-27
 :toc: macro
 YAML is human friendly data serialization standard. footnote:[YAML stands for YAML Ain't Markup Language. See https://yaml.org/]  Yamp is a general-purpose macroprocessor for YAML files.  Both its input and output are YAML. It scans the input for symbols and makes substitutions and expansions on the output. yamp is 100% YAML so the syntax for defining and calling macros is YAML also.
 
@@ -479,6 +479,26 @@ Example:
 
 Produces the value `false`.
 
+=== Preventing Expansion with `quote`
+
+The `quote` macro does not expand its input arguments returning them unexpanded.
+
+Example:
+
+[source,YAML]
+----
+- define: { data1: { sub: 2}}
+- data1.sub
+- quote: data1.sub
+----
+
+Produces
+
+[source,YAML]
+----
+- 2
+- data1.sub
+----
 
 === Looping with `repeat`
 

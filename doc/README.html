@@ -737,7 +737,7 @@ asciidoc.install(2);
 <span id="author">Peter Birch</span><br />
 <span id="email"><code>&lt;<a href="mailto:birchb1024@gmail.com">birchb1024@gmail.com</a>&gt;</code></span><br />
 <span id="revnumber">version 0.1,</span>
-<span id="revdate">2019-01-26</span>
+<span id="revdate">2019-01-27</span>
 <div id="toc">
   <div id="toctitle">Table of Contents</div>
   <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
@@ -1287,6 +1287,27 @@ http://www.gnu.org/software/src-highlite -->
 <div class="paragraph"><p>Produces the value <code>false</code>.</p></div>
 </div>
 <div class="sect2">
+<h3 id="_preventing_expansion_with_code_quote_code">Preventing Expansion with <code>quote</code></h3>
+<div class="paragraph"><p>The <code>quote</code> macro does not expand its input arguments returning them unexpanded.</p></div>
+<div class="paragraph"><p>Example:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">- </span><span style="color: #009900">define</span><span style="color: #990000">:</span> { data1: { sub: <span style="color: #993399">2</span>}}
+<span style="color: #990000">-</span> data1.sub
+<span style="color: #990000">- </span><span style="color: #009900">quote</span><span style="color: #990000">:</span> data1.sub</tt></pre></div></div>
+<div class="paragraph"><p>Produces</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">-</span> <span style="color: #993399">2</span>
+<span style="color: #990000">-</span> data1.sub</tt></pre></div></div>
+</div>
+<div class="sect2">
 <h3 id="_looping_with_code_repeat_code">Looping with <code>repeat</code></h3>
 <div class="paragraph"><p>This macro repeatedly expands the same object over and over, either returning a list or a map. If the <code>key</code> argument is present it returns a map, using the <code>key</code> argument as the item&#8217;s key. This must have embedded variables derived from the looping execution otherwise there will be a key collision error.</p></div>
 <div class="listingblock">
@@ -1589,7 +1610,7 @@ http://www.gnu.org/software/src-highlite -->
 <div id="footer-text">
 Version 0.1<br />
 Last updated
- 2019-01-26 23:37:13 AEDT
+ 2019-01-27 18:02:57 AEDT
 </div>
 </div>
 </body>

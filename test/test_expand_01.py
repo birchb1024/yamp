@@ -31,6 +31,14 @@ class TestYamp(unittest.TestCase):
         self.assertEqual(expand({'quux': {'FOO': 'bar'}}, {'FOO':12, 'BAR': 22}) , {'quux': {'FOO': 'bar'}})
         self.assertEqual(expand([{'quux': {'FOO': 'bar'}}], {'FOO':12, 'BAR': 22}) ,  [{'quux': {'FOO': 'bar'}}])
 
+    def testQuote(self):
+        self.assertEqual({'+': 'var', 'value': 23}, expand({'quote': {'+': 'var', 'value': 23}}, {}))
+        self.assertEqual([{'+': 'var', 'value': 23}], expand([{'quote': {'+': 'var', 'value': 23}}], {}))
+        self.assertEqual({'a': {'+': 'var', 'value': 23}}, expand({'a': {'quote': {'+': 'var', 'value': 23}}}, {}))
+        self.assertEqual([1022], expand([
+            {'define': {'X' : {'quote': {'+': [22,1000]}}}}, 
+            'X'], {}))
+
     def testScalarsBad(self):
         with self.assertRaises(Exception) as context:
             self.assertEqual([99], expand([{'define': {'name': 123, 'value': 23}}, 123], {}))
@@ -568,11 +576,12 @@ class TestYamp(unittest.TestCase):
         tempout = tempfile.mkstemp()
         outputfilestream = open(tempout[1], 'w+')
         path_to_test = os.path.join(curr_path, file_to_test)
+        path_fixture = os.path.join(curr_path, fixture)
         global_environment = { 'argv': [], '__FILE__' :  path_to_test } # Fake environments
         expand_file(path_to_test, global_environment, expandafterload=True, outputfile=outputfilestream)
         outputfilestream.close()
         
-        self.assertTrue(filecmp.cmp(tempout[1], fixture, shallow=False),
+        self.assertTrue(filecmp.cmp(tempout[1], path_fixture, shallow=False),
             'Output file from "{}" not matching fixture: "{}" "{}"'.format(file_to_test, tempout[1], fixture))
 
     def testREADME(self):

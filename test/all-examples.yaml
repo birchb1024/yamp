@@ -25,6 +25,7 @@ include:
 #  - ../examples/meta.yaml
   - ../examples/multi_define.yaml
   - ../examples/python.yaml
+  - ../examples/quote.yaml
   - ../examples/readme.yaml
   - ../examples/recursive.yaml
   - ../examples/repeat.yaml

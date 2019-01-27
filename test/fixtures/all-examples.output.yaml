@@ -206,6 +206,19 @@ webserver:
 7
 ...
 ---
+- 2
+- data1.sub
+---
+- data1.sub
+- - 1
+  - 7
+  - a
+- - 22
+  - 33
+---
+- - 333
+  - 22
+---
 - Hello: World
 ---
 pipelines:
