@@ -133,9 +133,9 @@ repeat:
 - define: {FOO: 2}
 - python: ' FOO**10 '
 ---
-- python: 'len(argv)'
-- python: 'env["USERNAME"].upper()'
-- python: 'datetime.datetime.now()'
+#- python: 'len(argv)'
+#- python: 'env["USERNAME"].upper()'
+#- python: 'datetime.datetime.now()'
 # - python: 'iter(_ for _ in ()).throw(Exception("{} This is how to raise an exception!".format(env["USERNAME"])))'
 ---
 range: [3 , 5]

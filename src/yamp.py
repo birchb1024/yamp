@@ -385,7 +385,7 @@ def expand(tree, bindings):
             for filename in tree['include']:
                 if type(filename) != str:
                     raise(YampException('Syntax error was list of string in {}'.format(tree)))
-                expand_file(expand(filename, bindings))
+                expand_file(expand(filename, bindings), bindings)
             return None
 
         if 'load' in tree.keys():
@@ -394,7 +394,7 @@ def expand(tree, bindings):
             if type(tree['load']) != str:
                     raise(YampException('Syntax error was expecting string in {}'.format(tree)))
             pp(tree['load'])
-            return expand_file(expand(tree['load'], bindings), False)
+            return expand_file(expand(tree['load'], bindings), bindings, expandafterload=False)
 
         for k,v in tree.iteritems():
             new_k = expand(k, bindings)
@@ -417,7 +417,7 @@ def expand(tree, bindings):
         return tree
 
 
-def expand_file(filename, expandafterload=True):
+def expand_file(filename, bindings, expandafterload=True, outputfile=None):
     """
     Read and optionally expand a file in the global environment.
 
@@ -428,9 +428,14 @@ def expand_file(filename, expandafterload=True):
     No return value
 
     """
-    global global_environment
+    if not outputfile:
+        # Probably an include - assume we can inherit the output.
+        outputfile = bindings['__current_output__']
+    elif '__current_output__' not in bindings:
+        # First time called
+        bindings['__current_output__'] = outputfile
 
-    current_file = global_environment['__FILE__']
+    current_file = bindings['__FILE__'] # Remember prior file
     if current_file == None:
         current_dir = os.getcwd()
     else:
@@ -438,9 +443,9 @@ def expand_file(filename, expandafterload=True):
     if filename.startswith('/'):
         path = filename
     else:
-        path = os.path.join(current_dir, filename)
+        path = os.path.join(current_dir, filename) # use relative paths
     if expandafterload:
-        global_environment['__FILE__'] = path
+        bindings['__FILE__'] = path # New file now
     statinfo = os.stat(path)
     if statinfo.st_size == 0:
         print("ERROR: empty file {}".format(path), file=sys.stderr)
@@ -449,20 +454,16 @@ def expand_file(filename, expandafterload=True):
         docs = load_all(open(path), Loader=Loader)
         if expandafterload:
             for tree in docs:
-                expanded_tree = expand(tree, global_environment)
+                expanded_tree = expand(tree, bindings)
                 if expanded_tree:
-                    print('---')
-                    print(dump(expanded_tree, default_flow_style=False))
+                    outputfile.write('---\n')
+                    outputfile.write(dump(expanded_tree, default_flow_style=False))
         else:
             return [tree for tree in docs]
-        global_environment['__FILE__'] = current_file
+        bindings['__FILE__'] = current_file # restore prior file
     except YampException as e:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        print("ERROR: {}\n{} line {}\n".format(path, e, exc_tb.tb_lineno), file=sys.stderr)
+        print("ERROR: {}\n{}\n".format(path, e), file=sys.stderr)
         sys.exit(1)
-
-global_environment = {'env': os.environ.copy() } # copy() to get a dictionary
-
 
 if __name__ == '__main__':
 
@@ -470,9 +471,7 @@ if __name__ == '__main__':
         print('ERROR: no files to scan', file=sys.stderr)
         sys.exit(1)
 
-    global_environment['argv'] = sys.argv
     filename  = sys.argv[1]
-    global_environment['__FILE__'] = None
-    expand_file(filename)
+    expand_file(filename, {'__FILE__': None, 'argv' : sys.argv, 'env': os.environ.copy()}, expandafterload=True, outputfile=sys.stdout)
 
 

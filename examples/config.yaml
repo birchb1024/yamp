@@ -1,6 +1,6 @@
 ---
 - define:
-    name: config
+    name: configuration
     value:
       - PREIMP:
           hostname: locahostperf0

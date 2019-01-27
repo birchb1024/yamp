@@ -1,6 +1,9 @@
 import os, sys
 import yaml
+import StringIO
 import unittest
+import filecmp
+import tempfile
 from pprint import pprint
 
 curr_path = os.path.dirname(os.path.realpath(__file__))
@@ -516,8 +519,10 @@ class TestYamp(unittest.TestCase):
         self.assertEquals(3, expand({'python': 'B + A'}, bindings))
 
     def testInclude(self):
-        global_environment['__FILE__'] = os.path.abspath(__file__)
-        global_environment['FILENAME'] = 'file2'
+        global_environment = {
+            '__FILE__' : os.path.abspath(__file__),
+            'FILENAME' : 'file2',
+            '__current_output__' : StringIO.StringIO()}
         current_directory = os.path.dirname(os.path.abspath(__file__))
 
         self.assertEquals([
@@ -529,8 +534,10 @@ class TestYamp(unittest.TestCase):
                 '$f2'], global_environment))
 
     def testLoad(self):
-        global_environment['__FILE__'] = os.path.abspath(__file__)
-        global_environment['DIRNAME'] = 'fixtures'
+        global_environment = {
+            '__FILE__' : os.path.abspath(__file__),
+            'DIRNAME' : 'fixtures',
+            '__current_output__' : sys.stdout}
         self.assertEquals(
              [{'dev':   {'webserver': {'hostname': 'web02', 'ip': '1.1.2.4'}},
                'perf0': {'webserver': {'hostname': 'web01', 'ip': '1.1.2.3'}}},
@@ -556,6 +563,25 @@ class TestYamp(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             merge_maps([12,{'a':1, 'c':99},{'b':2},{'c':3}],{})
         self.assertTrue('Error: non-map' in context.exception.message)
+
+    def runFileRegression(self, file_to_test, fixture):
+        tempout = tempfile.mkstemp()
+        outputfilestream = open(tempout[1], 'w+')
+        path_to_test = os.path.join(curr_path, file_to_test)
+        global_environment = { 'argv': [], '__FILE__' :  path_to_test } # Fake environments
+        expand_file(path_to_test, global_environment, expandafterload=True, outputfile=outputfilestream)
+        outputfilestream.close()
+        
+        self.assertTrue(filecmp.cmp(tempout[1], fixture, shallow=False),
+            'Output file from "{}" not matching fixture: "{}" "{}"'.format(file_to_test, tempout[1], fixture))
+
+    def testREADME(self):
+        self.runFileRegression('../examples/readme.yaml','fixtures/readme.output.yaml')
+
+    def testAllExamples(self):
+        self.runFileRegression('../test/all-examples.yaml','fixtures/all-examples.output.yaml')
+
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,0 +1,34 @@
+#
+# Useful for regression testing all examples.
+#
+---
+# Fake environment
+define:
+  env:
+    USERNAME: peter
+    USER: peter
+---
+include:
+  - ../examples/alter_keys.yaml
+  - ../examples/argv.yaml
+#  - ../examples/asserts.yaml
+  - ../examples/config.yaml
+#  - ../examples/data.yaml
+#  - ../examples/env01.yaml
+  - ../examples/foo.yaml
+  - ../examples/for.yaml
+  - ../examples/funny_variables.yaml
+  - ../examples/ifs.yaml
+  - ../examples/includes.yaml
+  - ../examples/loader.yaml
+  - ../examples/macros.yaml
+#  - ../examples/meta.yaml
+  - ../examples/multi_define.yaml
+  - ../examples/python.yaml
+  - ../examples/readme.yaml
+  - ../examples/recursive.yaml
+  - ../examples/repeat.yaml
+  - ../examples/repeat02.yaml
+  - ../examples/replace.yaml
+  - ../examples/template01.gocd.yaml
+  - ../examples/varargs.yaml

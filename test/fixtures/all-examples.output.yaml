@@ -1,0 +1,511 @@
+---
+mymap:
+  1236: north
+  1237: south
+  East_1234: east
+  Foo_1234: west
+---
+- c
+- d
+- e
+---
+- a
+- b
+- c
+- d
+- e
+---
+- foo: 78
+- 12
+---
+Deploy_PREIMP:
+- steps: step PREIMP 1
+- steps: step PREIMP 2
+Deploy_PROD:
+- steps: step PROD 1
+- steps: step PROD 2
+---
+- 123
+- 37
+---
+OK
+...
+---
+OK
+...
+---
+OK
+...
+---
+- 123
+- 4444
+---
+- Goodbye Stage: null
+  approval: success
+  jobs:
+    Job_hi:
+      tasks:
+        resources:
+        - linux
+        tasks:
+        - exec:
+            arguments:
+            - -c
+            - date
+            command: /bin/bash
+            run_if: passed
+---
+- deploy:
+  - boilerplate
+  - shutdown_server: 20 seconds
+  - deploy:
+      facts:
+        hostname: lll123
+        password: 1231231
+        ports:
+        - 21
+        - 22
+        username: jill
+      something: 34
+      timeout: 3 h
+  - intermediate
+  - start server
+- first_port: 21
+- second_port: 22
+---
+- Hello: World
+---
+pipelines:
+  mypipe1:
+    group: mygroup
+    label_template: ${COUNT}
+    materials:
+      mygit:
+        branch: master
+        git: http://my.example.org/mygit.git
+    stages: null
+  mypipe2:
+    group: mygroup
+    label_template: ${COUNT}
+    materials:
+      mygit:
+        branch: ci
+        git: http://my.example.org/mygit.git
+    stages: null
+---
+- AChristopherA
+---
+- 1024
+---
+- 32
+- - 32
+  - 32
+- - 99
+---
+- Wednesday
+- db01
+- web01
+---
+- Database upgrade for Netflix:
+  - stop application Netflix
+  - backup app database db8812
+  - upgrade the database db8812
+  - restart the application Netflix
+  - smoke test Netflix
+- Database upgrade for Stan:
+  - stop application Stan
+  - backup app database postgres123123
+  - upgrade the database postgres123123
+  - restart the application Stan
+  - smoke test Stan
+---
+name: Install apache
+yum:
+  name: apache
+  state: latest
+---
+- shutdown database
+---
+Deploy_App_DEV1:
+  stage: step
+Deploy_App_PROD:
+  stage: step
+Deploy_App_SVT:
+  stage: step
+---
+115.0
+...
+---
+- true
+---
+- 1024
+---
+- 3
+- 4
+- 5
+---
+- /home/elvis
+- /home/madonna
+- /var
+- /log
+---
+webserver:
+  hostname: web04
+  ip: 1.2.2.4
+---
+- deploy:
+  - boilerplate
+  - shutdown_server: 20 seconds
+  - deploy:
+      facts:
+        hostname: lll123
+        password: 1231231
+        ports:
+        - 21
+        - 22
+        username: jill
+      something: 34
+      timeout: 3 h
+  - intermediate
+  - start server
+- first_port: 21
+- second_port: 22
+---
+- 23
+- '1 7 { { a }} { { a }} {''pythonz'': ''b ** 2''}'
+---
+- - dev:
+      webserver:
+        hostname: web02
+        ip: 1.1.2.4
+    perf0:
+      webserver:
+        hostname: web01
+        ip: 1.1.2.3
+  - qa1:
+      webserver:
+        hostname: web04
+        ip: 1.2.2.4
+    sit:
+      webserver:
+        hostname: web03
+        ip: 1.2.2.3
+- webserver:
+    hostname: web02
+    ip: 1.1.2.4
+---
+- 8
+- bar
+- 5
+- - 1
+  - 7
+  - '{ { a }} { { a }}'
+  - pythonz: b ** 2
+  - e
+---
+7
+...
+---
+- Hello: World
+---
+pipelines:
+  mypipe1:
+    group: mygroup
+    label_template: ${COUNT}
+    materials:
+      mygit:
+        branch: master
+        git: http://my.example.org/mygit.git
+    stages: null
+  mypipe2:
+    group: mygroup
+    label_template: ${COUNT}
+    materials:
+      mygit:
+        branch: ci
+        git: http://my.example.org/mygit.git
+    stages: null
+---
+- AChristopherA
+---
+- 1024
+---
+- 32
+- - 32
+  - 32
+- - 99
+---
+- Wednesday
+- db01
+- web01
+---
+- Database upgrade for Netflix:
+  - stop application Netflix
+  - backup app database db8812
+  - upgrade the database db8812
+  - restart the application Netflix
+  - smoke test Netflix
+- Database upgrade for Stan:
+  - stop application Stan
+  - backup app database postgres123123
+  - upgrade the database postgres123123
+  - restart the application Stan
+  - smoke test Stan
+---
+name: Install apache
+yum:
+  name: apache
+  state: latest
+---
+- shutdown database
+---
+Deploy_App_DEV1:
+  stage: step
+Deploy_App_PROD:
+  stage: step
+Deploy_App_SVT:
+  stage: step
+---
+115.0
+...
+---
+- true
+---
+- 1024
+---
+- 3
+- 4
+- 5
+---
+- /home/elvis
+- /home/madonna
+- /var
+- /log
+---
+- new:
+    new:
+      new:
+        new:
+          new:
+            new:
+              new:
+                new: null
+                to:
+                - 7
+                - axe
+              to:
+              - 6
+              - axe
+            to:
+            - 5
+            - axe
+          to:
+          - 4
+          - axe
+        to:
+        - 3
+        - axe
+      to:
+      - 2
+      - axe
+    to:
+    - 1
+    - axe
+  to:
+  - 0
+  - axe
+---
+Deploy_PREIMP:
+- steps: Do PREIMP 1
+- steps: Do PREIMP 2
+Deploy_PROD:
+- steps: Do PROD 1
+- steps: Do PROD 2
+---
+- another_item: null
+  loop_variable: KEY_abra
+  some: step
+- another_item: null
+  loop_variable: KEY_ca
+  some: step
+- another_item: null
+  loop_variable: KEY_dabra
+  some: step
+---
+- another_item: null
+  loop_variable: KEY_1
+  some: step
+- another_item: null
+  loop_variable: KEY_2
+  some: step
+- another_item: null
+  loop_variable: KEY_3
+  some: step
+---
+Deploy_App_DEV1:
+  stage: step
+Deploy_App_PROD:
+  stage: step
+Deploy_App_SVT:
+  stage: step
+---
+Deploy_App_1:
+  stage: step
+Deploy_App_2:
+  stage: step
+Deploy_App_3:
+  stage: step
+Deploy_App_4:
+  stage: step
+Deploy_App_5:
+  stage: step
+---
+Deploy_App_DEV1:
+  Start_server_1:
+    stage: run start
+  Start_server_2:
+    stage: run start
+  Start_server_3:
+    stage: run start
+  Start_server_4:
+    stage: run start
+  Start_server_5:
+    stage: run start
+Deploy_App_PROD:
+  Start_server_1:
+    stage: run start
+  Start_server_2:
+    stage: run start
+  Start_server_3:
+    stage: run start
+  Start_server_4:
+    stage: run start
+  Start_server_5:
+    stage: run start
+Deploy_App_SVT:
+  Start_server_1:
+    stage: run start
+  Start_server_2:
+    stage: run start
+  Start_server_3:
+    stage: run start
+  Start_server_4:
+    stage: run start
+  Start_server_5:
+    stage: run start
+---
+- config.myenv
+---
+pipelines:
+  Hello_World_1:
+    group: Group_1
+    label_template: ${COUNT}
+    materials:
+      shared:
+        git: ssh://git@bitbucket/~geoff/gocdpocpipelines.git
+    stages:
+    - Hello:
+        approval: success
+        jobs:
+          World1:
+            resources:
+            - linux
+            tasks:
+            - exec:
+                arguments:
+                - -c
+                - date
+                command: /bin/bash
+                run_if: passed
+          World2:
+            resources:
+            - linux
+            tasks:
+            - exec:
+                arguments:
+                - -c
+                - date
+                command: /bin/bash
+                run_if: passed
+  Hello_World_2:
+    group: Group_1
+    label_template: ${COUNT}
+    materials:
+      shared:
+        git: ssh://git@bitbucket/~geoff/gocdpocpipelines.git
+    stages:
+    - Hello:
+        approval: success
+        jobs:
+          World1:
+            resources:
+            - linux
+            tasks:
+            - exec:
+                arguments:
+                - -c
+                - date
+                command: /bin/bash
+                run_if: passed
+          World2:
+            resources:
+            - linux
+            tasks:
+            - exec:
+                arguments:
+                - -c
+                - date
+                command: /bin/bash
+                run_if: passed
+  Hello_World_3:
+    group: Group_1
+    label_template: ${COUNT}
+    materials:
+      shared:
+        git: ssh://git@bitbucket/~geoff/gocdpocpipelines.git
+    stages:
+    - Hello:
+        approval: success
+        jobs:
+          World1:
+            resources:
+            - linux
+            tasks:
+            - exec:
+                arguments:
+                - -c
+                - date
+                command: /bin/bash
+                run_if: passed
+          World2:
+            resources:
+            - linux
+            tasks:
+            - exec:
+                arguments:
+                - -c
+                - date
+                command: /bin/bash
+                run_if: passed
+---
+- one:
+  - 1
+  - 7
+  - '{ { a }} { { a }}'
+- two: 77
+---
+- hosts: webservers
+  remote_user: root
+  tasks:
+  - name: Install apache
+    yum:
+      name: apache
+      state: latest
+  vars:
+    http_port: 80
+    max_clients: 200
+---
+- env: prod
+  host: lpp23423
+- env: perf
+  host: lp123123

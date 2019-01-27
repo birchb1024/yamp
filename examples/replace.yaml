@@ -1,7 +1,6 @@
 ---
 include:
   - config.yaml
-  - argv.yaml
 ---
 - define: {name: myenv, value: 1}
 

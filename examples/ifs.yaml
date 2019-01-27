@@ -9,7 +9,7 @@ if: null
 then: FAIL
 else: OK
 ---
-- define: {name: 123, value: 3333}
+- define: {name: '123', value: 3333}
 - 123
 - define: {name: $foo, value: 4444}
 - $foo

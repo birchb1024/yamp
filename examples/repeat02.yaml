@@ -8,7 +8,7 @@ repeat:
   body:
     loop_variable: 'KEY_{{loop_variable}}'
     some: step
-    another:
+    another_item:
 ---
 repeat:
   for: loop_variable
@@ -16,7 +16,7 @@ repeat:
   body:
     loop_variable: 'KEY_{{loop_variable}}'
     some: step
-    another:
+    another_item:
 ---
 repeat:
   for: loop_variable

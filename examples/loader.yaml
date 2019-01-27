@@ -1,5 +1,5 @@
 ---
-- define: {name: file, value: data.yaml}
+- define: {name: file, value: load_data.yaml}
 - define:
     name: somedata
     value: {load: file}
