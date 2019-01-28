@@ -553,6 +553,17 @@ class TestYamp(unittest.TestCase):
                'sit':   {'webserver': {'hostname': 'web03', 'ip': '1.2.2.3'}}}],
              expand({'load': '{{DIRNAME}}/data1.yaml'}, global_environment))
 
+    def testLoadJSON(self):
+        global_environment = {
+            '__FILE__' : os.path.abspath(__file__),
+            '__current_output__' : sys.stdout}
+        self.assertEquals(
+             'Blade Runner',
+             expand({'load': 'fixtures/blade-runner.json'}, global_environment)[u'name'])
+        self.assertEquals(
+             'Blade Runner 2049',
+             expand({'load': 'fixtures/blade-runner-2049.json'}, global_environment)[u'name'])
+
     def testFlattenList(self):
         self.assertEquals([1,2,3,4], flatten_list([1,[2],[[3]],[[[4]]]], {}))
         self.assertEquals([1,'a',3,4], flatten_list([1,['a'],[[3]],[[[4]]]], {}))
@@ -583,6 +594,7 @@ class TestYamp(unittest.TestCase):
         
         self.assertTrue(filecmp.cmp(tempout[1], path_fixture, shallow=False),
             'Output file from "{}" not matching fixture: "{}" "{}"'.format(file_to_test, tempout[1], fixture))
+
 
     def testREADME(self):
         self.runFileRegression('../examples/readme.yaml','fixtures/readme.output.yaml')

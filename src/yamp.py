@@ -10,6 +10,7 @@ import os
 
 import re
 import sys
+import json
 from pprint import pprint as pp
 import pprint
 import numbers
@@ -411,16 +412,29 @@ def expand(tree, bindings):
             if interp_k != k:
                 # string containing {{ }} - only these keys are expanded
                 if interp_k in newdict:
-                    raise Exception('ERROR: duplicate map key "{}" in {}'.format(interp_k, tree))
+                    raise(YampException('ERROR: duplicate map key "{}" in {}'.format(interp_k, tree)))
                 newdict[interp_k] = expand(v, bindings)
                 continue
             if k in newdict:
-                raise Exception('ERROR: duplicate map key "{}" in {}'.format(k, tree))
+                raise(YampException('ERROR: duplicate map key "{}" in {}'.format(k, tree)))
             newdict[k] = expand(v, bindings)
         return newdict
     else:
         return tree
 
+def byteify(input):
+    """
+    https://stackoverflow.com/questions/956867/how-to-get-string-objects-instead-of-unicode-from-json/13105359#13105359 
+    """
+    if isinstance(input, dict):
+        return {byteify(key): byteify(value)
+                for key, value in input.iteritems()}
+    elif isinstance(input, list):
+        return [byteify(element) for element in input]
+    elif isinstance(input, unicode):
+        return input.encode('utf-8')
+    else:
+        return input
 
 def expand_file(filename, bindings, expandafterload=True, outputfile=None):
     """
@@ -433,6 +447,37 @@ def expand_file(filename, bindings, expandafterload=True, outputfile=None):
     No return value
 
     """
+    def expand_yaml():
+        try:
+            docs = load_all(open(path), Loader=Loader)
+            if expandafterload:
+                for tree in docs:
+                    expanded_tree = expand(tree, bindings)
+                    if expanded_tree:
+                        outputfile.write('---\n')
+                        outputfile.write(dump(expanded_tree, default_flow_style=False))
+            else:
+                return [tree for tree in docs]
+        except YampException as e:
+            print("ERROR: {}\n{}\n".format(path, e), file=sys.stderr)
+            sys.exit(1)
+
+    def expand_json():
+        try:
+            data = byteify(json.load(open(path)))
+            return data
+        except YampException as e:
+            print("ERROR: {}\n{}\n".format(path, e), file=sys.stderr)
+            sys.exit(1)
+
+    # Now try to figure out the file type
+    file_types = {  'yaml' : expand_yaml, 
+                    'yml'  : expand_yaml,
+                    'json' : expand_json }
+    suffix = filename.split('.')[-1]
+    if not suffix in file_types:
+        raise(YampException('Unknown file type "{}", file types are {}.'.format(filename, file_types.keys())))
+
     if not outputfile:
         # Probably an include - assume we can inherit the output.
         outputfile = bindings['__current_output__']
@@ -455,20 +500,11 @@ def expand_file(filename, bindings, expandafterload=True, outputfile=None):
     if statinfo.st_size == 0:
         print("ERROR: empty file {}".format(path), file=sys.stderr)
         sys.exit(1)
-    try:
-        docs = load_all(open(path), Loader=Loader)
-        if expandafterload:
-            for tree in docs:
-                expanded_tree = expand(tree, bindings)
-                if expanded_tree:
-                    outputfile.write('---\n')
-                    outputfile.write(dump(expanded_tree, default_flow_style=False))
-        else:
-            return [tree for tree in docs]
-        bindings['__FILE__'] = current_file # restore prior file
-    except YampException as e:
-        print("ERROR: {}\n{}\n".format(path, e), file=sys.stderr)
-        sys.exit(1)
+
+    # Do the load/parse
+    result = file_types[suffix]()
+    bindings['__FILE__'] = current_file # restore prior file
+    return result
 
 if __name__ == '__main__':
 

@@ -693,7 +693,7 @@ include:
 
 === Reading data files with `load`
 
-Read a single file of ordinary YAML data and returns the result in a list, one object for each 'doc'.
+The `load` macro reads a single file of YAML or JSON data and returns the result. No variable substitutions or macro expansions are performed on the data. YAML data is returned as a list, one object for each 'doc'. footnote:[YAML files are subdivided into 'docs' separated by '---']
 
 [source, YAML]
 ----
