@@ -1,3 +1,4 @@
+file_header:
 ---
 - define: {name: FOO, value: 'BAR'}
 - python: '2 ** 3'

@@ -1,3 +1,5 @@
+file_header:
+---
 # format_version: 2
 #
 # Usage: PIPELINE_GROUP=1 NUMBER_OF_PIPES=10 python src/yamp.py examples/template01.gocd.yaml

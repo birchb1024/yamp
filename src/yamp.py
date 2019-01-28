@@ -448,7 +448,7 @@ def expand_file(filename, bindings, expandafterload=True, outputfile=None):
     if filename.startswith('/'):
         path = filename
     else:
-        path = os.path.join(current_dir, filename) # use relative paths
+        path = os.path.abspath(os.path.join(current_dir, filename)) # resolve relative paths
     if expandafterload:
         bindings['__FILE__'] = path # New file now
     statinfo = os.stat(path)

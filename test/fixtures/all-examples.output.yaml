@@ -1,9 +1,13 @@
 ---
+- '*************** File: alter_keys.yaml *****************'
+---
 mymap:
   1236: north
   1237: south
   East_1234: east
   Foo_1234: west
+---
+- '*************** File: argv.yaml *****************'
 ---
 - c
 - d
@@ -15,8 +19,14 @@ mymap:
 - d
 - e
 ---
+- '*************** File: config.yaml *****************'
+---
+- '*************** File: foo.yaml *****************'
+---
 - foo: 78
 - 12
+---
+- '*************** File: for.yaml *****************'
 ---
 Deploy_PREIMP:
 - steps: step PREIMP 1
@@ -25,8 +35,12 @@ Deploy_PROD:
 - steps: step PROD 1
 - steps: step PROD 2
 ---
+- '*************** File: funny_variables.yaml *****************'
+---
 - 123
 - 37
+---
+- '*************** File: ifs.yaml *****************'
 ---
 OK
 ...
@@ -55,6 +69,10 @@ OK
             command: /bin/bash
             run_if: passed
 ---
+- '*************** File: includes.yaml *****************'
+---
+- '*************** File: macros.yaml *****************'
+---
 - deploy:
   - boilerplate
   - shutdown_server: 20 seconds
@@ -72,6 +90,8 @@ OK
   - start server
 - first_port: 21
 - second_port: 22
+---
+- '*************** File: readme.yaml *****************'
 ---
 - Hello: World
 ---
@@ -149,9 +169,13 @@ Deploy_App_SVT:
 - /var
 - /log
 ---
+- '*************** File: loader.yaml *****************'
+---
 webserver:
   hostname: web04
   ip: 1.2.2.4
+---
+- '*************** File: macros.yaml *****************'
 ---
 - deploy:
   - boilerplate
@@ -170,6 +194,8 @@ webserver:
   - start server
 - first_port: 21
 - second_port: 22
+---
+- '*************** File: multi_define.yaml *****************'
 ---
 - 23
 - '1 7 { { a }} { { a }} {''pythonz'': ''b ** 2''}'
@@ -194,6 +220,8 @@ webserver:
     hostname: web02
     ip: 1.1.2.4
 ---
+- '*************** File: python.yaml *****************'
+---
 - 8
 - bar
 - 5
@@ -206,8 +234,12 @@ webserver:
 7
 ...
 ---
+- '*************** File: quote.yaml *****************'
+---
 - 2
 - data1.sub
+- a: data1.sub
+  b: 42
 ---
 - data1.sub
 - - 1
@@ -218,6 +250,8 @@ webserver:
 ---
 - - 333
   - 22
+---
+- '*************** File: readme.yaml *****************'
 ---
 - Hello: World
 ---
@@ -294,6 +328,8 @@ Deploy_App_SVT:
 - /home/madonna
 - /var
 - /log
+---
+- '*************** File: recursive.yaml *****************'
 ---
 - new:
     new:
@@ -328,12 +364,16 @@ Deploy_App_SVT:
   - 0
   - axe
 ---
+- '*************** File: repeat.yaml *****************'
+---
 Deploy_PREIMP:
 - steps: Do PREIMP 1
 - steps: Do PREIMP 2
 Deploy_PROD:
 - steps: Do PROD 1
 - steps: Do PROD 2
+---
+- '*************** File: repeat02.yaml *****************'
 ---
 - another_item: null
   loop_variable: KEY_abra
@@ -407,7 +447,13 @@ Deploy_App_SVT:
   Start_server_5:
     stage: run start
 ---
+- '*************** File: replace.yaml *****************'
+---
+- '*************** File: config.yaml *****************'
+---
 - config.myenv
+---
+- '*************** File: template01.gocd.yaml *****************'
 ---
 pipelines:
   Hello_World_1:
@@ -500,6 +546,8 @@ pipelines:
                 - date
                 command: /bin/bash
                 run_if: passed
+---
+- '*************** File: varargs.yaml *****************'
 ---
 - one:
   - 1
