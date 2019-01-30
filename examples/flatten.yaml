@@ -1,0 +1,30 @@
+---
+# flatten lists
+- define: {home-directories: [/home/elvis, /home/madonna]}
+---
+flatten: [[home-directories], /var, /log]
+---
+merge:
+    - { a : 1 }
+    - { b : 2 }
+    - { c : 3 , a : -1}
+---
+- define: 
+    network-data: 
+      hostname: tetris.games.org
+- defmacro:
+    name: mymacro
+    args: [arg1]
+    value:
+      hostname: arg1
+      ip: 1.1.1.1
+      app: tetris
+- merge:
+  - { hostname: tetris.home.org }
+  - { site: Kansas }
+  - mymacro:
+      arg1: tetris
+  - network-data
+
+
+
