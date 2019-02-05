@@ -6,7 +6,7 @@
 
  Exit Status: -1 on failure
 
- Usage: 
+ Usage:
 
       python2 yam_check.py [File ...]
 
@@ -16,11 +16,14 @@ from __future__ import print_function
 import os
 import sys
 import pprint
-from yaml import load, Loader, dump
+from yaml import load, Loader, dump, dumper
+
+noalias_dumper = dumper.SafeDumper
+noalias_dumper.ignore_aliases = lambda self, data: True # http://signal0.com/2013/02/06/disabling_aliases_in_pyyaml.html
 
 def fumpfd(filename, file_descriptor):
     try:
-        print(dump(load(file_descriptor, Loader=Loader), default_flow_style=False))
+        print(dump(load(file_descriptor, Loader=Loader), default_flow_style=False, Dumper=noalias_dumper))
     except Exception as e:
         print("ERROR: {}\n{}\n".format(filename, e), file=sys.stderr)
         sys.exit(1)
