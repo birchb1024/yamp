@@ -18,7 +18,6 @@ mymap:
 - c
 - d
 - e
----
 - '*************** File: config.yaml *****************'
 ---
 - '*************** File: foo.yaml *****************'
@@ -68,8 +67,6 @@ OK
             - date
             command: /bin/bash
             run_if: passed
----
-- '*************** File: includes.yaml *****************'
 ---
 - '*************** File: macros.yaml *****************'
 ---
@@ -168,6 +165,7 @@ Deploy_App_SVT:
 - /home/madonna
 - /var
 - /log
+- '*************** File: includes.yaml *****************'
 ---
 - '*************** File: loader.yaml *****************'
 ---
@@ -450,10 +448,9 @@ Deploy_App_SVT:
     stage: run start
   Start_server_5:
     stage: run start
+- '*************** File: config.yaml *****************'
 ---
 - '*************** File: replace.yaml *****************'
----
-- '*************** File: config.yaml *****************'
 ---
 - config.myenv
 ---

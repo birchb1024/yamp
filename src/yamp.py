@@ -449,15 +449,19 @@ def expand_file(filename, bindings, expandafterload=True, outputfile=None):
     """
     def expand_yaml():
         try:
-            docs = load_all(open(path), Loader=Loader)
+            doc_gen = load_all(open(path), Loader=Loader)
             if expandafterload:
-                for tree in docs:
+                expanded = []
+                for tree in doc_gen:
                     expanded_tree = expand(tree, bindings)
-                    if expanded_tree:
+                    if expanded_tree and expanded_tree != [] and expanded_tree != {}:
+                        expanded.append(expanded_tree)
+                for output_doc in expanded:
+                   if len(expanded) > 1 :
                         outputfile.write('---\n')
-                        outputfile.write(dump(expanded_tree, default_flow_style=False))
+                   outputfile.write(dump(output_doc, default_flow_style=False))
             else:
-                return [tree for tree in docs]
+                return [tree for tree in doc_gen]
         except YampException as e:
             print("ERROR: {}\n{}\n".format(path, e), file=sys.stderr)
             sys.exit(1)
