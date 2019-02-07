@@ -11,20 +11,16 @@ import os
 import re
 import sys
 import json
-from pprint import pprint as pp
-import pprint
 import numbers
 import datetime
 from yaml import load, Loader, dump, load_all
 
-def pp(ignore):
-    pass
 
 class YampException(Exception):
     pass
 
 def interpolate(astring, bindings):
-    pp(('**** int', astring))
+
     if type(astring) != str:
         return astring
     tokens = re.split('({{[^{]*}})', astring)
@@ -59,13 +55,10 @@ def lookup(env, key):
             return None
 
 def new_macro(tree, bindings):
-#    pprint.pprint(tree)
     name = tree['name']
     body = tree['value']
     parameters = tree['args'] or []
     def apply(args):
-        pp("to apply: {} to {} with {}".format(name, args, bindings))
-        pp(('**apply', name, parameters, args))
         if type(parameters) == list and args and type(args) != dict:
             raise(YampException('Expecting dict args for {} [ {} ], got: {}'.format(name, parameters, args)))
         if type(parameters) == list and len(parameters) == 0  and args:
@@ -88,7 +81,6 @@ def subvar_lookup(original, vars_list, tree, bindings):
     Given 'b.1', ['b', '1' ] , {'b': ['x', 'y']}
         return 'y'
     """
-    pp(['*** sl', original, vars_list, tree])
     if len(vars_list) == 0:
         raise(YampException('Subvariable not found in {}'.format(original)))
     if tree == None:
@@ -126,15 +118,12 @@ def subvar_lookup(original, vars_list, tree, bindings):
         raise(YampException('Subvariable data not indexable {} {}'.format(original, tree)))
 
 def expand_str(tree, bindings):
-    pp(['*** es', tree])
     tv = lookup(bindings, tree)
     if tv: 
         return tv[0] # a variable like 'a.c.e' matches first
     # no, look for subvariables. 
     subvar = tree.split('.')
-    pp(['subvar', subvar])
     tv = lookup(bindings, subvar[0])
-    pp(['tv', tv])
     if not tv:
         return tree # No variable to expand for this string
     if len(subvar) > 1:
@@ -156,7 +145,6 @@ def expand_repeat_dict(tree, bindings):
     if set(parameters) != set(statement.keys()):
         raise(YampException('Argument mismatch in {} \n\texpected {} got {}'.format(tree, parameters, statement.keys())))
     rang = expand(expand(statement['in'], bindings), bindings)
-    pp(('*** rang', rang))
     var = statement['for']
     body = statement['body']
     key = statement['key']
@@ -182,7 +170,6 @@ def expand_repeat_list(tree, bindings):
     if set(parameters) != set(statement.keys()):
         raise(YampException('Argument mismatch in {} \n\texpected {} got {}'.format(tree, parameters, statement.keys())))
     rang = expand(expand(statement['in'], bindings), bindings)
-    pp(('*** rang', rang))
     var = statement['for']
     body = statement['body']
     if type(rang) != list:
@@ -251,10 +238,8 @@ def expand(tree, bindings):
     Return a new tree
 
     """
-    pp(('** expa', tree))
     if type(tree) == str:
         result = expand_str(tree, bindings)
-        pp(('ex result', result))
         if result == tree:
             return interpolate(tree, bindings)
         if type(result) == str:
@@ -300,7 +285,6 @@ def expand(tree, bindings):
             sum = 0
             for item in tree['+']:
                 item_ex = expand(item, bindings)
-                #pprint.pprint(('++++', item, item_ex, bindings))
                 if not isinstance(item_ex, numbers.Number):
                     raise(YampException('Was expecting number in {}'.format(tree)))
                 sum += item_ex
@@ -330,7 +314,6 @@ def expand(tree, bindings):
                     raise(YampException('Syntax error was expecting list(2) in {}'.format(tree)))
             start = str(expand(statement[0], bindings)) # TODO
             end = str(expand(statement[1], bindings))
-            pp((start, end))
             for item in [start, end]:
                 if not item.isdigit():
                     raise(YampException('Syntax error was expecting integer range in {}, got {}'.format(tree, item)))
@@ -340,7 +323,6 @@ def expand(tree, bindings):
             return expand_python(tree, bindings)
 
         if 'if' in tree.keys():
-            pp(('>> if', tree))
             if 'else' not in tree.keys() and 'then' not in tree.keys():
                 raise(YampException('Syntax error "then" or "else" missing in {}'.format(tree)))
             if set(tree.keys()) - set(['if', 'then', 'else']):
@@ -357,7 +339,6 @@ def expand(tree, bindings):
             return None
 
         if 'define' in tree.keys():
-            pp(('== define', tree))
             if len(tree.keys()) != 1:
                     raise(YampException('Syntax error too many keys in {}'.format(tree)))
             if 'name' not in tree['define'] and 'value' not in tree['define']:
@@ -367,7 +348,6 @@ def expand(tree, bindings):
                     raise(YampException('Syntax error "{}" missing in {}'.format(required, tree)))
             if type(tree['define']['name']) != str:
                 raise(YampException('Syntax error "{}" not a string in {}'.format(tree['define']['name'], tree)))
-            pp(('defining', tree['define']['name'], expand(tree['define']['value'], bindings)))
             bindings[tree['define']['name']] = expand(tree['define']['value'], bindings)
             return None
 
@@ -399,7 +379,6 @@ def expand(tree, bindings):
                     raise(YampException('Syntax error too many keys in {}'.format(tree)))
             if type(tree['load']) != str:
                     raise(YampException('Syntax error was expecting string in {}'.format(tree)))
-            pp(tree['load'])
             return expand_file(expand(tree['load'], bindings), bindings, expandafterload=False)
 
         for k,v in tree.iteritems():

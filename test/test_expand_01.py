@@ -388,7 +388,6 @@ class TestYamp(unittest.TestCase):
         bindings = {'A': 1}
         with self.assertRaises(Exception) as context:
             expand(' {{QUUX}} ', bindings)
-        pp(context.exception.message)
         self.assertTrue('ndefined' in context.exception.message)
 
     def testRepeatListNull(self):
