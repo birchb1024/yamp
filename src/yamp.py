@@ -20,6 +20,14 @@ class YampException(Exception):
     pass
 
 def interpolate(astring, bindings):
+    """
+    Parse a string which may contain embedded variables denoted by curlies {{ }}.
+    When these are found expand the variables and return the expanded string.
+    If the variables are called up but not defined throw an error.
+    :param astring:
+    :param bindings:
+    :return:
+    """
 
     if type(astring) != str:
         return astring
@@ -55,10 +63,31 @@ def lookup(env, key):
             return None
 
 def new_macro(tree, bindings):
+    """
+    Given a macro definition of the form {'name': <string>, 'args': None|<list of strings>|<string>, 'value': <anything>},
+    create a Python function closed in the current function. The function returned has signature (args),
+    where args contains a map with bindings for each of the 'args' supplied. The returned function applies
+    expansion of the 'body' with the supplied real arguments in its environment.
+
+    If the 'args' is a single string, not a list, then
+    the returned function binds all its actual arguments to the specified args binding.
+
+    If 'args' is None no arguments are bound, but if actual arguments are provided the returned function raises an error.
+    :param tree: {'name': <string>, 'args': None|<list of strings>|<string>, 'value': <anything>}
+    :param bindings: environment to update
+    :return: A new function to apply when the macro is called
+    """
     name = tree['name']
     body = tree['value']
     parameters = tree['args'] or []
     def apply(args):
+        """
+        Given a map of arguments, create a new local environment for this macro expansion, bind the args to the new
+        enviroment, then expand the captured body and return the result. If the captured parameters variable is a string, it is
+        used for variable arguments which are all bound to it.
+        :param args:
+        :return:
+        """
         if type(parameters) == list and args and type(args) != dict:
             raise(YampException('Expecting dict args for {} [ {} ], got: {}'.format(name, parameters, args)))
         if type(parameters) == list and len(parameters) == 0  and args:
@@ -78,8 +107,14 @@ def new_macro(tree, bindings):
 
 def subvar_lookup(original, vars_list, tree, bindings):
     """
-    Given 'b.1', ['b', '1' ] , {'b': ['x', 'y']}
-        return 'y'
+    Parse and expand a 'dot notation' variable string. Recursively walk the tree of the main variable value,
+    as given by the subvariable list. Return the last value if possible.
+
+    :param original: The dot notation string - ie. 'b.1' - used for debug
+    :param vars_list: a list of 'sub' variables - ie ['1']
+    :param tree: the value of the major variable - ie. value of 'b' => ['x', 'y']
+    :param bindings: the current environment
+    :return: Example - Given 'b.1', ['b', '1' ] , {'b': ['x', 'y']} => returns 'y'
     """
     if len(vars_list) == 0:
         raise(YampException('Subvariable not found in {}'.format(original)))
@@ -117,29 +152,50 @@ def subvar_lookup(original, vars_list, tree, bindings):
     else:
         raise(YampException('Subvariable data not indexable {} {}'.format(original, tree)))
 
-def expand_str(tree, bindings):
-    tv = lookup(bindings, tree)
+def expand_str(variable_name, bindings):
+    """
+    Given a simple string variable get its value from the binding, it has dot notation look in the
+    variable value for the selection.
+    :param tree: - the variable name in a simple case, or the dotnotation variable.
+    :param bindings: - current environment
+    :return:
+    """
+    tv = lookup(bindings, variable_name)
     if tv: 
         return tv[0] # a variable like 'a.c.e' matches first
     # no, look for subvariables. 
-    subvar = tree.split('.')
+    subvar = variable_name.split('.')
     tv = lookup(bindings, subvar[0])
     if not tv:
-        return tree # No variable to expand for this string
+        return variable_name # No variable to expand for this string
     if len(subvar) > 1:
         # It's a dot notation variable like 'host.name'
-        return subvar_lookup(tree, subvar[1:], tv[0], bindings)
+        return subvar_lookup(variable_name, subvar[1:], tv[0], bindings)
     else:
         # An atomic variable line 'host'
         return tv[0]
 
 def expand_repeat(tree, bindings):
+    """
+    Expand a repeat macro, this function selects the appropriate expander for lists and maps.
+    If the repeat has the 'key' key, then execute as for maps, else lists.
+    :param tree: The repeat form such as {repeat: {for: X, in: [1,2], key: 'Foo {{X}}', body: [stuff, X]}
+    :param bindings:
+    :return: The Expanse
+    """
     if 'key' in tree['repeat']:
         return expand_repeat_dict(tree, bindings)
     else:
         return expand_repeat_list(tree, bindings)
 
 def expand_repeat_dict(tree, bindings):
+    """
+    Expand a repeat loop and return a map, with a parameteriseed key. Create a local environment for the
+    expansion, bind the for variable name to the iteration value each time round.
+    :param tree: The repeat form such as {repeat: {for: X, in: [1,2], key: 'Foo {{X}}', body: [stuff, X]}
+    :param bindings:
+    :return: The Expanse
+    """
     statement = tree['repeat']
     parameters = ['for', 'in', 'body', 'key']
     if set(parameters) != set(statement.keys()):
@@ -165,6 +221,13 @@ def expand_repeat_dict(tree, bindings):
     return result
 
 def expand_repeat_list(tree, bindings):
+    """
+    Expand a repeat loop and return a list one item each time. Create a local environment for the
+    expansion, bind the for variable name to the iteration value each time round.
+    :param tree: The repeat form such as {repeat: {for: X, in: [1,2], body: [stuff, X]}
+    :param bindings:
+    :return: The Expanse
+    """
     statement = tree['repeat']
     parameters = ['for', 'in', 'body']
     if set(parameters) != set(statement.keys()):
@@ -184,6 +247,13 @@ def expand_repeat_list(tree, bindings):
     return result
 
 def expand_python(tree, bindings):
+    """
+    Expand a tree of the form {python: 'some expression'} by executing Python eval() withthe current bindings
+    used as the Python local variables.
+    :param tree: the form {python: 'some expression'}
+    :param bindings:
+    :return: Expanse
+    """
     statement = tree['python']
     if type(statement) != str:
         raise(YampException('Syntax error not string in {}'.format(tree)))
@@ -193,11 +263,13 @@ def expand_python(tree, bindings):
 
 def map_define(arglist, bindings):
     """
-    define:
-        a: 1
-        b: 2
+    Given a tree of the form {name:value, name: value}, expand and
+    bind the names provided to the values
+    in the current environment.
+    :param arglist: dict of name values
+    :param bindings: current environment to be updated
+    :return: None
     """
-    #
     definitions = expand(arglist, bindings)
     if type(definitions) != dict:
         raise(YampException('Syntax error bad define arguments "{}" from {}'.format(definitions, arglist)))
@@ -206,7 +278,10 @@ def map_define(arglist, bindings):
 
 def flatten_list(listy, bindings):
     """
-    Recursively flatten a list of lists. Lists in maps are not flattened.
+    Recursively expand and flatten a list of lists. Lists in maps are not flattened.
+    :param listy: list of lists to expand and flatten
+    :param bindings:
+    :return:
     """
     result = []
     for rawitem in listy:
@@ -217,12 +292,15 @@ def flatten_list(listy, bindings):
             result.extend(flatten_list(item, bindings)) # list
     return result
 
-def merge_maps(listy, bindings):
+def merge_maps(mappy, bindings):
     """
-    combine multiple maps into one. later maps overwrite earlier.
+    Expand and combine multiple maps into one map. Not recursive. Later maps overwrite earlier.
+    :param mappy: list of maps to be merged.
+    :param bindings:
+    :return: new map with merged content
     """
     result = {}
-    for rawitem in listy:
+    for rawitem in mappy:
         item = expand(rawitem, bindings)
         if not type(item) == dict:
             raise(YampException('Error: non-map passed to merge "{}" from {}'.format(item, rawitem)))
@@ -234,9 +312,13 @@ def merge_maps(listy, bindings):
 
 def expand(tree, bindings):
     """
-    Recursively substitute values in the symbol table bindings
-    Return a new tree
-
+    This is the eval function of the macro-processor.  It takes a any kind of YAML-generated combination of
+    dictionaries, lists and atoms, and recursively substitutes keys in the symbol table (bindings) with the
+    stored values. If the value is a previously defined macro function it is applied to the form.  If the result
+    of an expansion is None, no list item is generated.
+    :param tree: Any tree as generated by reading YAML.
+    :param bindings: A hierarchy of symbol-tables of variables and bindings, connected by their __parent__ keys.
+    :return:     Return a new tree
     """
     if type(tree) == str:
         result = expand_str(tree, bindings)
@@ -403,6 +485,7 @@ def expand(tree, bindings):
 
 def byteify(input):
     """
+    Function to replace all Unicode strings with plain-old-ascii (UTF-8) ones. See author's description:
     https://stackoverflow.com/questions/956867/how-to-get-string-objects-instead-of-unicode-from-json/13105359#13105359 
     """
     if isinstance(input, dict):
@@ -423,10 +506,16 @@ def expand_file(filename, bindings, expandafterload=True, outputfile=None):
     treat as relative to the current file. If there is no
     current file (top-level) use the current directory.
 
-    No return value
-
+    :param filename:
+    :param bindings:
+    :param expandafterload:
+    :param outputfile:
+    :return:     No return value
     """
     def expand_yaml():
+        """
+        Process YAML data - with macro-expansion - empty documents are removed.
+        """
         try:
             doc_gen = load_all(open(path), Loader=Loader)
             if expandafterload:
@@ -446,6 +535,9 @@ def expand_file(filename, bindings, expandafterload=True, outputfile=None):
             sys.exit(1)
 
     def expand_json():
+        """
+        Process JSON data (no expansions)
+        """
         try:
             data = byteify(json.load(open(path)))
             return data
