@@ -160,20 +160,20 @@ def expand_str(variable_name, bindings):
     :param bindings: - current environment
     :return:
     """
-    tv = lookup(bindings, variable_name)
-    if tv: 
-        return tv[0] # a variable like 'a.c.e' matches first
-    # no, look for subvariables. 
+    value = lookup(bindings, variable_name)
+    if value:
+        return value[0] # a simple variable like 'host' or a variable like 'a.c.e' matches first
+
+    # nothing simple, look for subvariables.
     subvar = variable_name.split('.')
-    tv = lookup(bindings, subvar[0])
-    if not tv:
-        return variable_name # No variable to expand for this string
     if len(subvar) > 1:
         # It's a dot notation variable like 'host.name'
-        return subvar_lookup(variable_name, subvar[1:], tv[0], bindings)
+        topvalue = lookup(bindings, subvar[0])
+        if not topvalue:
+            return variable_name # No variable found
+        return subvar_lookup(variable_name, subvar[1:], topvalue[0], bindings)
     else:
-        # An atomic variable line 'host'
-        return tv[0]
+        return variable_name
 
 def expand_repeat(tree, bindings):
     """

@@ -574,6 +574,11 @@ class TestYamp(unittest.TestCase):
              expand({'flatten': [1,[2],[[3]]]}, {}))
 
     def testMergeDict(self):
+        self.assertEquals(
+            {'a': 1, 'b': 2, 'c': 3},
+            expand({'merge': [{'a':1},{'b':2},{'c':3}]}, {}))
+
+    def testMergeDictInternal(self):
         self.assertEquals({'a':1, 'b':2, 'c':3}, merge_maps([{'a':1},{'b':2},{'c':3}],{}))
         self.assertEquals({'a':1, 'b':2, 'c':3}, merge_maps([{'a':1, 'c':99},{'b':2},{'c':3}],{}))
 
