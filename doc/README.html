@@ -976,7 +976,7 @@ http://www.gnu.org/software/src-highlite -->
    &lt;Argument&gt;: &lt;value&gt;
    &lt;Argument&gt;: &lt;value&gt;
     . . .</tt></pre></div></div>
-<div class="paragraph"><p>Some macros have special functions and are built-in to Yamp. Those are describe in thie reference section.</p></div>
+<div class="paragraph"><p>Some macros have special functions and are built-in to Yamp. Those are described in the reference section.</p></div>
 <div class="paragraph"><p>Here&#8217;s examples of three kinds of things Yamp is scanning for replacement:</p></div>
 <div class="listingblock">
 <div class="title">Simple Variables</div>
@@ -1006,7 +1006,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="sect2">
 <h3 id="_variables">Variables</h3>
-<div class="paragraph"><p>During processing yamp maintains a hierarchy of bindings of variable names to variable values. The top level of bindings is the gobal environment, as each macro is applied the application creates a unique environment for the macro variables which is popped when the macro finishes.</p></div>
+<div class="paragraph"><p>During processing yamp maintains a hierarchy of bindings of variable names to variable values. The top level of bindings is the gobal environment. As each macro is applied the application creates a unique environment for the macro variables which is popped when the macro finishes.</p></div>
 <div class="sect3">
 <h4 id="_code_define_code_definition_of_variables"><code>define</code> - Definition of Variables</h4>
 <div class="paragraph"><p>You can define new variable bindings or update existing variables with the <code>define</code> macro. The value can be any YAML expansion. Variable names are expected to be strings.</p></div>
@@ -1055,7 +1055,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="sect4">
 <h5 id="_interpolation_with_dot_syntax">Interpolation with dot syntax</h5>
 <div class="paragraph"><p>If a string contains periods, such as <code>data.height</code> Yamp looks for a exactly matching variable name, which is expanded with the value. Otherwise the first item (ie <code>data</code>) is assumed to be a variable name.</p></div>
-<div class="paragraph"><p>If a binding for the first part is found the value of the variable is assumed to be a collection. The other items which we call sub-variables are used to index the collection (ie <code>height</code>). If the collection is a map, the sub-variable name is used as the key, if it is a list the subvariable must evaluate to an integer which is zero-indexed into the list. These subvariable names are also expanded before use so other variables can be used to index the collection.</p></div>
+<div class="paragraph"><p>If a binding for the first part is found the value of the variable is assumed to be a collection. The other items which we call sub-variables are used to index the collection (ie <code>height</code>). If the collection is a map, the sub-variable name is used as the key. If it is a list the subvariable must evaluate to an integer which is zero-indexed into the list. These subvariable names are also expanded before use so other variables can be used to index the collection.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.8
 by Lorenzo Bettini
@@ -1103,10 +1103,10 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="sect3">
 <h4 id="_macros">Macros</h4>
-<div class="paragraph"><p>Macros are re-usable templates of YAML objects that can be called up almost anywhere in the expansion. They differ from variables becuase they have parameters which are used to fill holes in the template. The are similar to functions, but unlike functions their entire text is always the result. By defining oft-repeated YAML fragments in macros repetitive work is avoided. Also a singular macro definition makes maintainance easy since there is a single defintion for a concept which canm be easily changed.</p></div>
+<div class="paragraph"><p>Macros are re-usable templates of YAML objects that can be called up almost anywhere in the expansion. They differ from variables becuase they have parameters which are used to fill holes in the template. The are similar to functions, but unlike functions their entire text is always the result. By defining oft-repeated YAML fragments in macros repetitive work is avoided. Also a singular macro definition makes maintainance easy since there is a single defintion for a concept which can be easily changed.</p></div>
 <div class="sect4">
 <h5 id="_defining_with_code_defmacro_code">Defining with <code>defmacro</code></h5>
-<div class="paragraph"><p>Macros are defined with the <code>define</code> macro which gives the macro a name and sepcifies the arguments it has and the expansion to return, the body.  A macro defintion looks like this:</p></div>
+<div class="paragraph"><p>Macros are defined with the <code>define</code> macro which gives the macro a name and specifies the arguments it has and the expansion to return, the body.  A macro definition looks like this:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.8
 by Lorenzo Bettini
@@ -1216,6 +1216,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #009900">yum</span><span style="color: #990000">:</span>
 <span style="color: #990000">  </span><span style="color: #009900">name</span><span style="color: #990000">:</span> apache
 <span style="color: #990000">  </span><span style="color: #009900">state</span><span style="color: #990000">:</span> latest</tt></pre></div></div>
+<div class="paragraph"><p>The disadvantage of vararg macros is that Yamp cannot ensure that all the required arguments have been supplied in the call.</p></div>
 </div>
 <div class="sect3">
 <h4 id="_nesting_macros">Nesting Macros</h4>
@@ -1270,7 +1271,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="sect2">
 <h3 id="_testing_equality_with_code_code">Testing equality with <code>==</code></h3>
-<div class="paragraph"><p>Macro expands to <code>true</code> or <code>false</code> if the items in the list are equal.</p></div>
+<div class="paragraph"><p>Macros can have almost any name, this one is the symbol <em>==</em>. It expands to <code>true</code> or <code>false</code> if the items in the list are equal. Most often used inide an enclosing <code>if</code> macro.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.8
 by Lorenzo Bettini
@@ -1309,7 +1310,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="sect2">
 <h3 id="_looping_with_code_repeat_code">Looping with <code>repeat</code></h3>
-<div class="paragraph"><p>This macro repeatedly expands the same object over and over, either returning a list or a map. If the <code>key</code> argument is present it returns a map, using the <code>key</code> argument as the item&#8217;s key. This must have embedded variables derived from the looping execution otherwise there will be a key collision error.</p></div>
+<div class="paragraph"><p>This macro repeatedly expands the same object, either returning a list or a map. If the <code>key</code> argument is present it returns a map, using the <code>key</code> argument as the item&#8217;s key. This must have embedded variables derived from the looping execution otherwise there will be a key collision error. With no <code>key</code> argument, it returns a list.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.8
 by Lorenzo Bettini
@@ -1318,8 +1319,7 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="color: #009900">repeat</span><span style="color: #990000">:</span>
 <span style="color: #990000">  </span><span style="color: #009900">for</span><span style="color: #990000">:</span> &lt;loop variable name&gt;
 <span style="color: #990000">  </span><span style="color: #009900">in</span><span style="color: #990000">:</span> [list of items]
-  <span style="font-style: italic"><span style="color: #9A1900"># Optionally:</span></span>
-<span style="color: #990000">  </span><span style="color: #009900">key</span><span style="color: #990000">:</span> &lt;string key with embedded varaibles in {{}}&gt;
+<span style="color: #990000">  </span><span style="color: #009900">key</span><span style="color: #990000">:</span> &lt;string key with embedded varaibles in {{}}&gt; <span style="font-style: italic"><span style="color: #9A1900"># Optional</span></span>
 <span style="color: #990000">  </span><span style="color: #009900">body</span><span style="color: #990000">:</span> &lt;any value&gt;</tt></pre></div></div>
 <div class="paragraph"><p>Example - returning a dictionary:</p></div>
 <div class="listingblock">
@@ -1376,10 +1376,32 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #990000">- </span><span style="color: #009900">another</span><span style="color: #990000">:</span> <span style="font-weight: bold"><span style="color: #0000FF">null</span></span>
 <span style="color: #990000">  </span><span style="color: #009900">loop_variable</span><span style="color: #990000">:</span> KEY_3
 <span style="color: #990000">  </span><span style="color: #009900">some</span><span style="color: #990000">:</span> step</tt></pre></div></div>
+<div class="paragraph"><p>Example - looped list with changing keys. Here the keys and values of a child map are changed. :</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #009900">repeat</span><span style="color: #990000">:</span>
+<span style="color: #990000">  </span><span style="color: #009900">for</span><span style="color: #990000">:</span> loop_variable
+<span style="color: #990000">  </span><span style="color: #009900">in</span><span style="color: #990000">:</span> {range: [<span style="color: #993399">12</span>,<span style="color: #993399">13</span>]}
+<span style="color: #990000">  </span><span style="color: #009900">body</span><span style="color: #990000">:</span>
+    <span style="color: #FF0000">'index_{{loop_variable}}'</span>: { +:  [<span style="color: #993399">100</span>, loop_variable] }
+<span style="color: #990000">    </span><span style="color: #009900">some</span><span style="color: #990000">:</span> step</tt></pre></div></div>
+<div class="paragraph"><p>Produces:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">- </span><span style="color: #009900">index_12</span><span style="color: #990000">:</span> <span style="color: #993399">112</span>
+<span style="color: #990000">  </span><span style="color: #009900">some</span><span style="color: #990000">:</span> step
+<span style="color: #990000">- </span><span style="color: #009900">index_13</span><span style="color: #990000">:</span> <span style="color: #993399">113</span>
+<span style="color: #990000">  </span><span style="color: #009900">some</span><span style="color: #990000">:</span> step</tt></pre></div></div>
 </div>
 <div class="sect2">
 <h3 id="_looping_with_code_range_code">Looping with <code>range</code></h3>
-<div class="paragraph"><p>The <code>range</code> macro substitutes a list of numbers that can be used in <code>repeat</code> macros. (Or anywhere else a list of numbers is needed). It generates them from the <code>start</code> an <code>end</code> arguemtents.</p></div>
+<div class="paragraph"><p>The <code>range</code> macro substitutes a list of numbers that can be used in <code>repeat</code> macros. (Or anywhere else a list of numbers is needed). The start and end values are passed as a list argument.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.8
 by Lorenzo Bettini
@@ -1405,7 +1427,9 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="color: #009900">define</span><span style="color: #990000">:</span> {home-directories: [/home/elvis, /home/madonna]}
 <span style="font-weight: bold"><span style="color: #000000">---</span></span>
-<span style="color: #009900">flatten</span><span style="color: #990000">:</span> [[home-directories], /var, /log]</tt></pre></div></div>
+<span style="color: #009900">flatten</span><span style="color: #990000">:</span> [[home-directories], /var, /log]
+<span style="font-weight: bold"><span style="color: #000000">---</span></span>
+<span style="color: #009900">flatten</span><span style="color: #990000">:</span> [<span style="color: #993399">1</span>, <span style="color: #993399">2</span>, [<span style="color: #993399">3</span>], [[<span style="color: #993399">4</span>, <span style="color: #993399">5</span>]], [[[ <span style="color: #993399">6</span>,<span style="color: #993399">7</span>]]] ]</tt></pre></div></div>
 <div class="paragraph"><p>Produces:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.8
@@ -1415,11 +1439,19 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="color: #990000">-</span> /home/elvis
 <span style="color: #990000">-</span> /home/madonna
 <span style="color: #990000">-</span> /var
-<span style="color: #990000">-</span> /log</tt></pre></div></div>
+<span style="color: #990000">-</span> /log
+<span style="font-weight: bold"><span style="color: #000000">---</span></span>
+<span style="color: #990000">-</span> <span style="color: #993399">1</span>
+<span style="color: #990000">-</span> <span style="color: #993399">2</span>
+<span style="color: #990000">-</span> <span style="color: #993399">3</span>
+<span style="color: #990000">-</span> <span style="color: #993399">4</span>
+<span style="color: #990000">-</span> <span style="color: #993399">5</span>
+<span style="color: #990000">-</span> <span style="color: #993399">6</span>
+<span style="color: #990000">-</span> <span style="color: #993399">7</span></tt></pre></div></div>
 </div>
 <div class="sect2">
 <h3 id="_combining_maps_with_code_merge_code">Combining Maps with <code>merge</code></h3>
-<div class="paragraph"><p>The <code>merge</code> macro takes a list of maps and merges them togther to make a single map. When there are keys shared between the supplied maps, the program uses the last on seen, it over-writes the earlier value. Hence the order in the list dictates the priority. Syntax:</p></div>
+<div class="paragraph"><p>The <code>merge</code> macro takes a list of maps and merges them togther to make a single map. When there are keys shared between the supplied maps, the program uses the last one seen, it over-writes the earlier value. Hence the order in the list dictates the priority. Syntax:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.8
 by Lorenzo Bettini
@@ -1480,7 +1512,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="sect2">
 <h3 id="_arithmetic_with_code_code">Arithmetic with <code>+</code></h3>
-<div class="paragraph"><p>Add a list of numbers, int or float.</p></div>
+<div class="paragraph"><p>The <code>+</code> macro adds a list of numbers, int or float.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.8
 by Lorenzo Bettini
@@ -1491,7 +1523,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="sect2">
 <h3 id="_reading_files_with_code_include_code">Reading files with <code>include</code></h3>
-<div class="paragraph"><p>Reads and expands the list of Yamp YAML files in order.</p></div>
+<div class="paragraph"><p></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.8
 by Lorenzo Bettini
@@ -1503,17 +1535,29 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="sect2">
 <h3 id="_reading_data_files_with_code_load_code">Reading data files with <code>load</code></h3>
-<div class="paragraph"><p>The <code>load</code> macro read a single file of YAML or JSON data and returns the result. No variable substitutions or macro expansions are performed on the data. YAML data is returned as a list, one object for each <em>doc</em>. <span class="footnote"><br />[YAML files are subdivided into <em>docs</em> separated by <em>---</em>]<br /></span></p></div>
+<div class="paragraph"><p>The <code>load</code> macro reads a single file of YAML or JSON data and returns the result. No variable substitutions or macro expansions are performed on the data. YAML data is returned as a list, one object for each <em>doc</em>. <span class="footnote"><br />[YAML files are subdivided into <em>docs</em> separated by <em>---</em>]<br /></span></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.8
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>{load: &lt;filename&gt;}</tt></pre></div></div>
+<div class="paragraph"><p>Examples:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">- </span><span style="color: #009900">define</span><span style="color: #990000">:</span> {name: file, value: <span style="color: #FF0000">'load_data.yaml'</span>}
+<span style="color: #990000">- </span><span style="color: #009900">define</span><span style="color: #990000">:</span>
+<span style="color: #990000">    </span><span style="color: #009900">name</span><span style="color: #990000">:</span> somedata
+<span style="color: #990000">    </span><span style="color: #009900">value</span><span style="color: #990000">:</span> {load: file}
+<span style="color: #990000">- </span><span style="color: #009900">define</span><span style="color: #990000">:</span>
+<span style="color: #990000">    </span><span style="color: #009900">movie1</span><span style="color: #990000">:</span> {load: <span style="color: #FF0000">'../test/fixtures/blade-runner.json'</span>}</tt></pre></div></div>
 </div>
 <div class="sect2">
 <h3 id="_evaluating_python_expressions">Evaluating Python expressions</h3>
-<div class="paragraph"><p>This macro allows you to execute expressions inside the Python interpreter running Yamp. Yamp uses the Python <code>eval()</code> function, passing the current variable bindings to eval as the <code>locals</code>. This allows Python to access the Yamp-defined variables. Python cannot see bindings in the environment hierarchy directly, so to resolve variables in higher environments use the Yamp lookup function as in <code>lookup(__parent__, 'variablename')[0]`</code> function. Warning - Yamp internals can change at any time.</p></div>
+<div class="paragraph"><p>The <code>python</code> macro allows you to execute expressions inside the Python interpreter running Yamp. Yamp uses the Python <a href="https://docs.python.org/2/library/functions.html#eval:">eval()</a> function, passing the current variable bindings to eval as the <code>locals</code>. This allows Python to access the Yamp-defined variables. Python cannot see bindings in the environment hierarchy directly, so to resolve variables in higher environments use the Yamp lookup function as in <code>lookup(__parent__, 'variablename')[0]`</code> function. Warning - Yamp internals can change at any time.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.8
 by Lorenzo Bettini
@@ -1559,7 +1603,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="sect2">
 <h3 id="_builtin_variables">Builtin Variables</h3>
-<div class="paragraph"><p>Yamp automatically populates some variables as it executes. These are they:</p></div>
+<div class="paragraph"><p>Yamp automatically populates some variables as it executes. These are:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -1600,7 +1644,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="sect2">
 <h3 id="_updating_this_document">Updating This Document</h3>
-<div class="paragraph"><p>This document is in <a href="http://www.methods.co.nz/asciidoc/:">AsciiDoc</a> format. Use the Linux Asciidoc packages. To Highlight the YAML syntax also install source-highlight and the <a href="https://gist.github.com/zeroyonichihachi/c4952b355bb7a27552a5f23e0c53b65f#file-yaml-lang:">YAML syntax module</a>. Save the HTML version in <code>doc/README.html</code>.</p></div>
+<div class="paragraph"><p>This document is in <a href="http://www.methods.co.nz/asciidoc/:">AsciiDoc</a> format. Use the Linux <code>asciidoc</code> packages. To Highlight the YAML syntax also install <code>source-highlight</code> and the <a href="https://gist.github.com/zeroyonichihachi/c4952b355bb7a27552a5f23e0c53b65f#file-yaml-lang:">YAML syntax module</a>. Save the HTML version in <code>doc/README.html</code>.</p></div>
 </div>
 </div>
 </div>
@@ -1610,7 +1654,7 @@ http://www.gnu.org/software/src-highlite -->
 <div id="footer-text">
 Version 0.1<br />
 Last updated
- 2019-01-28 15:29:37 AEDT
+ 2019-05-03 02:07:19 AEST
 </div>
 </div>
 </body>

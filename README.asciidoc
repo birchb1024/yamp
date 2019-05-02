@@ -171,7 +171,7 @@ Yamp is looking for macro calls with this structure:
     . . .
 ----
 
-Some macros have special functions and are built-in to Yamp. Those are describe in thie reference section.
+Some macros have special functions and are built-in to Yamp. Those are described in the reference section.
 
 Here's examples of three kinds of things Yamp is scanning for replacement:
 
@@ -203,7 +203,7 @@ When all the objects in the data have been scanned and in some cases, substitute
 
 === Variables
 
-During processing yamp maintains a hierarchy of bindings of variable names to variable values. The top level of bindings is the gobal environment, as each macro is applied the application creates a unique environment for the macro variables which is popped when the macro finishes.
+During processing yamp maintains a hierarchy of bindings of variable names to variable values. The top level of bindings is the gobal environment. As each macro is applied the application creates a unique environment for the macro variables which is popped when the macro finishes.
 
 ==== `define` - Definition of Variables
 
@@ -253,7 +253,7 @@ Inside strings, yamp will insert expansions delimited by the double-curlies `{{`
 
 If a string contains periods, such as `data.height` Yamp looks for a exactly matching variable name, which is expanded with the value. Otherwise the first item (ie `data`) is assumed to be a variable name.
 
-If a binding for the first part is found the value of the variable is assumed to be a collection. The other items which we call sub-variables are used to index the collection (ie `height`). If the collection is a map, the sub-variable name is used as the key, if it is a list the subvariable must evaluate to an integer which is zero-indexed into the list. These subvariable names are also expanded before use so other variables can be used to index the collection. 
+If a binding for the first part is found the value of the variable is assumed to be a collection. The other items which we call sub-variables are used to index the collection (ie `height`). If the collection is a map, the sub-variable name is used as the key. If it is a list the subvariable must evaluate to an integer which is zero-indexed into the list. These subvariable names are also expanded before use so other variables can be used to index the collection. 
 
 [source, YAML]
 ----
@@ -299,11 +299,11 @@ Declarations don't need the 'name' and 'value' keys, and multiple variables are 
 
 ==== Macros
 
-Macros are re-usable templates of YAML objects that can be called up almost anywhere in the expansion. They differ from variables becuase they have parameters which are used to fill holes in the template. The are similar to functions, but unlike functions their entire text is always the result. By defining oft-repeated YAML fragments in macros repetitive work is avoided. Also a singular macro definition makes maintainance easy since there is a single defintion for a concept which canm be easily changed.
+Macros are re-usable templates of YAML objects that can be called up almost anywhere in the expansion. They differ from variables becuase they have parameters which are used to fill holes in the template. The are similar to functions, but unlike functions their entire text is always the result. By defining oft-repeated YAML fragments in macros repetitive work is avoided. Also a singular macro definition makes maintainance easy since there is a single defintion for a concept which can be easily changed.
 
 ===== Defining with `defmacro`
 
-Macros are defined with the `define` macro which gives the macro a name and sepcifies the arguments it has and the expansion to return, the body.  A macro defintion looks like this:
+Macros are defined with the `define` macro which gives the macro a name and specifies the arguments it has and the expansion to return, the body.  A macro definition looks like this:
 
 [source,YAML]
 ----
@@ -409,6 +409,8 @@ yum:
   state: latest
 ----
 
+The disadvantage of vararg macros is that Yamp cannot ensure that all the required arguments have been supplied in the call.  
+
 ==== Nesting Macros
 
 Macro calls can be nested i.e. a macro can can contain a call to another in its arguments. Likewise macro definitions can be nested. The macro arguments are lexically scoped, a closure is collected at the time of definition. The macro call executes in the environment in the define-time closure. Macros can call themselves directly or indirectly.
@@ -463,7 +465,7 @@ Produces `null`
 
 === Testing equality with `==`
 
-Macro expands to `true` or `false` if the items in the list are equal.
+Macros can have almost any name, this one is the symbol '=='. It expands to `true` or `false` if the items in the list are equal. Most often used inside an enclosing `if` macro.
 
 [source,YAML]
 ----
@@ -502,15 +504,14 @@ Produces
 
 === Looping with `repeat`
 
-This macro repeatedly expands the same object over and over, either returning a list or a map. If the `key` argument is present it returns a map, using the `key` argument as the item's key. This must have embedded variables derived from the looping execution otherwise there will be a key collision error.
+This macro repeatedly expands the same object, either returning a list or a map. If the `key` argument is present it returns a map, using the `key` argument as the item's key. This must have embedded variables derived from the looping execution otherwise there will be a key collision error. With no `key` argument, it returns a list.
 
 [source,YAML]
 ----
 repeat:
   for: <loop variable name>
   in: [list of items]
-  # Optionally:
-  key: <string key with embedded varaibles in {{}}>
+  key: <string key with embedded varaibles in {{}}> # Optional
   body: <any value>
 ----
 
@@ -570,9 +571,31 @@ Produces:
   some: step
 ----
 
+Example - looped list with changing keys. Here the keys and values of a child map are changed. :
+
+[source,YAML]
+----
+repeat:
+  for: loop_variable
+  in: {range: [12,13]}
+  body:
+    'index_{{loop_variable}}': { +:  [100, loop_variable] }
+    some: step
+----
+
+Produces:
+
+[source,YAML]
+----
+- index_12: 112
+  some: step
+- index_13: 113
+  some: step
+----
+
 === Looping with `range`
 
-The `range` macro substitutes a list of numbers that can be used in `repeat` macros. (Or anywhere else a list of numbers is needed). It generates them from the `start` an `end` arguemtents.
+The `range` macro substitutes a list of numbers that can be used in `repeat` macros. (Or anywhere else a list of numbers is needed). The start and end values are passed as a list argument. 
 
 [source, YAML]
 ----
@@ -597,6 +620,8 @@ For example:
 define: {home-directories: [/home/elvis, /home/madonna]}
 ---
 flatten: [[home-directories], /var, /log]
+---
+flatten: [1, 2, [3], [[4, 5]], [[[ 6,7]]] ]
 ----
 
 Produces:
@@ -607,11 +632,19 @@ Produces:
 - /home/madonna
 - /var
 - /log
+---
+- 1
+- 2
+- 3
+- 4
+- 5
+- 6
+- 7
 ----
 
 === Combining Maps with `merge`
 
-The `merge` macro takes a list of maps and merges them togther to make a single map. When there are keys shared between the supplied maps, the program uses the last on seen, it over-writes the earlier value. Hence the order in the list dictates the priority. Syntax:
+The `merge` macro takes a list of maps and merges them togther to make a single map. When there are keys shared between the supplied maps, the program uses the last one seen, it over-writes the earlier value. Hence the order in the list dictates the priority. Syntax:
 
 [source,YAML]
 ----
@@ -671,7 +704,7 @@ Which boils down to:
 
 === Arithmetic with `+`
 
-Add a list of numbers, int or float.
+The `+` macro adds a list of numbers, int or float.
 
 [source, YAML]
 ----
@@ -682,7 +715,7 @@ Produces `15`
 
 === Reading files with `include`
 
-Reads and expands the list of Yamp YAML files in order.
+`include` reads and expands the list of Yamp YAML files in order. The filenames can be the result of prior macro expansion. So derived filenames like "{{ROOT_DIR}}/{{arch}}/config.yaml" are possible.
 
 [source, YAML]
 ----
@@ -700,9 +733,22 @@ The `load` macro reads a single file of YAML or JSON data and returns the result
 {load: <filename>}
 ----
 
+Examples:
+
+[source, YAML]
+----
+- define: {name: file, value: 'load_data.yaml'}
+- define:
+    name: somedata
+    value: {load: file}
+- define:
+    movie1: {load: '../test/fixtures/blade-runner.json'}
+----
+
+
 === Evaluating Python expressions
 
-This macro allows you to execute expressions inside the Python interpreter running Yamp. Yamp uses the Python `eval()` function, passing the current variable bindings to eval as the `locals`. This allows Python to access the Yamp-defined variables. Python cannot see bindings in the environment hierarchy directly, so to resolve variables in higher environments use the Yamp lookup function as in `lookup(__parent__, 'variablename')[0]`` function. Warning - Yamp internals can change at any time.  
+The `python` macro allows you to execute expressions inside the Python interpreter running Yamp. Yamp uses the Python https://docs.python.org/2/library/functions.html#eval:[eval()] function, passing the current variable bindings to eval as the `locals`. This allows Python to access the Yamp-defined variables. Python cannot see bindings in the environment hierarchy directly, so to resolve variables in higher environments use the Yamp lookup function as in `lookup(__parent__, 'variablename')[0]`` function. Warning - Yamp internals can change at any time.  
 
 [source, YAML]
 ----
@@ -737,7 +783,7 @@ Examples:
 
 === Builtin Variables
 
-Yamp automatically populates some variables as it executes. These are they:
+Yamp automatically populates some variables as it executes. These are:
 
 * `__FILE__` - the current source filename
 
@@ -758,4 +804,4 @@ Run the unit tests with `python test/test_expand_01.py`.
 
 === Updating This Document
 
-This document is in http://www.methods.co.nz/asciidoc/:[AsciiDoc] format. Use the Linux Asciidoc packages. To Highlight the YAML syntax also install source-highlight and the https://gist.github.com/zeroyonichihachi/c4952b355bb7a27552a5f23e0c53b65f#file-yaml-lang:[YAML syntax module]. Save the HTML version in `doc/README.html`.
+This document is in http://www.methods.co.nz/asciidoc/:[AsciiDoc] format. Use the Linux `asciidoc` packages. To Highlight the YAML syntax also install `source-highlight` and the https://gist.github.com/zeroyonichihachi/c4952b355bb7a27552a5f23e0c53b65f#file-yaml-lang:[YAML syntax module]. Save the HTML version in `doc/README.html`.

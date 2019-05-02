@@ -4,6 +4,8 @@
 ---
 flatten: [[home-directories], /var, /log]
 ---
+flatten: [1, 2, [3], [[4, 5]], [[[ 6,7]]] ]
+---
 merge:
     - { a : 1 }
     - { b : 2 }

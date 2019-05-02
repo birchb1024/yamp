@@ -2,3 +2,4 @@ sandbox
 *.pyc
 htmlcov
 .coverage
+*~
