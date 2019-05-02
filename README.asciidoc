@@ -642,6 +642,35 @@ Produces:
 - 7
 ----
 
+=== Combining One Level of Lists with `flatone`
+
+The `flatone` macro combines multiple lists into a single, flat, list. The flattening is *not* recursive, only the first level is flattened. Syntax:
+
+[source,YAML]
+----
+flatone: < list of objects >
+----
+
+For example:
+
+[source,YAML]
+----
+flatone: [1, 2, [3], [[4, 5]], [[[ 6,7]]] ]
+----
+
+Produces:
+
+[source,YAML]
+----
+- 1
+- 2
+- 3
+- - 4
+  - 5
+- - - 6
+    - 7
+----
+
 === Combining Maps with `merge`
 
 The `merge` macro takes a list of maps and merges them togther to make a single map. When there are keys shared between the supplied maps, the program uses the last one seen, it over-writes the earlier value. Hence the order in the list dictates the priority. Syntax:

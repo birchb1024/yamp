@@ -292,6 +292,26 @@ def flatten_list(listy, bindings):
             result.extend(flatten_list(item, bindings)) # list
     return result
 
+def flat_list(depth, listy, bindings):
+    """
+    Expand and flatten a variable level list of lists.
+    Depth gives how many levels to descend.
+    Lists in maps are not flattened.
+    :param listy: list of lists to expand and flatten
+    :param bindings:
+    :return:
+    """
+    if depth == 0:
+        return listy
+    result = []
+    for rawitem in listy:
+        item = expand(rawitem, bindings)
+        if not type(item) == list:
+            result.append(item) # atoms or maps
+        else:
+            result.extend(flat_list(depth -1, item, bindings)) # list
+    return result
+
 def merge_maps(mappy, bindings):
     """
     Expand and combine multiple maps into one map. Not recursive. Later maps overwrite earlier.
@@ -378,6 +398,13 @@ def expand(tree, bindings):
             if type(tree['flatten']) != list:
                     raise(YampException('Syntax error was expecting list in {}'.format(tree)))
             return flatten_list(tree['flatten'], bindings)
+
+        if 'flatone' in tree.keys():
+            if len(tree.keys()) != 1:
+                    raise(YampException('Syntax error too many keys in {}'.format(tree)))
+            if type(tree['flatone']) != list:
+                    raise(YampException('Syntax error was expecting list in {}'.format(tree)))
+            return flat_list(1, tree['flatone'], bindings)
 
         if 'merge' in tree.keys():
             if len(tree.keys()) != 1:

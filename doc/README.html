@@ -1271,7 +1271,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="sect2">
 <h3 id="_testing_equality_with_code_code">Testing equality with <code>==</code></h3>
-<div class="paragraph"><p>Macros can have almost any name, this one is the symbol <em>==</em>. It expands to <code>true</code> or <code>false</code> if the items in the list are equal. Most often used inide an enclosing <code>if</code> macro.</p></div>
+<div class="paragraph"><p>Macros can have almost any name, this one is the symbol <em>==</em>. It expands to <code>true</code> or <code>false</code> if the items in the list are equal. Most often used inside an enclosing <code>if</code> macro.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.8
 by Lorenzo Bettini
@@ -1448,6 +1448,36 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #990000">-</span> <span style="color: #993399">5</span>
 <span style="color: #990000">-</span> <span style="color: #993399">6</span>
 <span style="color: #990000">-</span> <span style="color: #993399">7</span></tt></pre></div></div>
+</div>
+<div class="sect2">
+<h3 id="_combining_one_level_of_lists_with_code_flatone_code">Combining One Level of Lists with <code>flatone</code></h3>
+<div class="paragraph"><p>The <code>flatone</code> macro combines multiple lists into a single, flat, list. The flattening is <strong>not</strong> recursive, only the first level is flattened. Syntax:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #009900">flatone</span><span style="color: #990000">:</span> &lt; list of objects &gt;</tt></pre></div></div>
+<div class="paragraph"><p>For example:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #009900">flatone</span><span style="color: #990000">:</span> [<span style="color: #993399">1</span>, <span style="color: #993399">2</span>, [<span style="color: #993399">3</span>], [[<span style="color: #993399">4</span>, <span style="color: #993399">5</span>]], [[[ <span style="color: #993399">6</span>,<span style="color: #993399">7</span>]]] ]</tt></pre></div></div>
+<div class="paragraph"><p>Produces:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">-</span> <span style="color: #993399">1</span>
+<span style="color: #990000">-</span> <span style="color: #993399">2</span>
+<span style="color: #990000">-</span> <span style="color: #993399">3</span>
+<span style="color: #990000">-</span> - <span style="color: #993399">4</span>
+<span style="color: #990000">  -</span> <span style="color: #993399">5</span>
+<span style="color: #990000">-</span> - - <span style="color: #993399">6</span>
+<span style="color: #990000">    -</span> <span style="color: #993399">7</span></tt></pre></div></div>
 </div>
 <div class="sect2">
 <h3 id="_combining_maps_with_code_merge_code">Combining Maps with <code>merge</code></h3>
@@ -1654,7 +1684,7 @@ http://www.gnu.org/software/src-highlite -->
 <div id="footer-text">
 Version 0.1<br />
 Last updated
- 2019-05-03 02:07:19 AEST
+ 2019-05-03 02:47:37 AEST
 </div>
 </div>
 </body>

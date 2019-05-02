@@ -568,6 +568,11 @@ class TestYamp(unittest.TestCase):
         self.assertEquals([1,'a',3,4], flatten_list([1,['a'],[[3]],[[[4]]]], {}))
         self.assertEquals([1,2,{'x':22},4], flatten_list([1,[2],[[{'x':22}]],[[[4]]]], {}))
 
+    def testFlatoneList(self):
+        self.assertEquals([1,2,[3],[[4]]], flat_list(1, [1,[2],[[3]],[[[4]]]], {}))
+        self.assertEquals([1,'a',[3],[[4]]], flat_list(1, [1,['a'],[[3]],[[[4]]]], {}))
+        self.assertEquals([1,2,{'x':22},[4]], flat_list(2, [1,[2],[[{'x':22}]],[[[4]]]], {}))
+
     def testFlatten(self):
         self.assertEquals(
              [1,2,3],
