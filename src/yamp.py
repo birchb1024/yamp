@@ -544,7 +544,15 @@ def expand_file(filename, bindings, expandafterload=True, outputfile=None):
         Process YAML data - with macro-expansion - empty documents are removed.
         """
         try:
-            doc_gen = load_all(open(path), Loader=Loader)
+            if path == '-':
+                fd = sys.stdin
+            else:
+                statinfo = os.stat(path)
+                if statinfo.st_size == 0:
+                    print("ERROR: empty file {}".format(path), file=sys.stderr)
+                    sys.exit(1)
+                fd = open(path)
+            doc_gen = load_all(fd, Loader=Loader)
             if expandafterload:
                 expanded = []
                 for tree in doc_gen:
@@ -576,6 +584,7 @@ def expand_file(filename, bindings, expandafterload=True, outputfile=None):
     file_types = {  'yaml' : expand_yaml, 
                     'yml'  : expand_yaml,
                     'yamp' : expand_yaml,
+                    '-' : expand_yaml,
                     'json' : expand_json}
     suffix = filename.split('.')[-1]
     if not suffix in file_types:
@@ -594,16 +603,13 @@ def expand_file(filename, bindings, expandafterload=True, outputfile=None):
         current_dir = os.getcwd()
     else:
         current_dir = os.path.dirname(current_file)
-    if filename.startswith('/'):
+
+    if filename.startswith('/') or filename == '-':
         path = filename
     else:
         path = os.path.abspath(os.path.join(current_dir, filename)) # resolve relative paths
     if expandafterload:
         bindings['__FILE__'] = path # New file now
-    statinfo = os.stat(path)
-    if statinfo.st_size == 0:
-        print("ERROR: empty file {}".format(path), file=sys.stderr)
-        sys.exit(1)
 
     # Do the load/parse
     result = file_types[suffix]()

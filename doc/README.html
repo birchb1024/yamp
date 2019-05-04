@@ -928,7 +928,15 @@ a macro call - block style
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt>$ python yamp<span style="color: #990000">.</span>py Filename <span style="color: #990000">[</span>arg1<span style="color: #990000">..</span>argn<span style="color: #990000">]</span></tt></pre></div></div>
+<pre><tt>$ python yamp<span style="color: #990000">.</span>py <span style="color: #990000">[</span>Filename <span style="color: #990000">|</span> - <span style="color: #990000">]</span> <span style="color: #990000">[</span>arg1<span style="color: #990000">..</span>argn<span style="color: #990000">]</span></tt></pre></div></div>
+<div class="paragraph"><p>If the filename is the minus sign <code>-</code> Yamp reads YAML from the standard input, so it serves as a filter. As in</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ echo <span style="color: #FF0000">"[define: {data: {load: test/fixtures/blade-runner.json}}, data.director]"</span> <span style="color: #990000">|</span> python src/yamp<span style="color: #990000">.</span>py -
+- <span style="color: #FF0000">' Ridley Scott'</span></tt></pre></div></div>
 <div class="sect3">
 <h4 id="_file_suffixes">File Suffixes</h4>
 <div class="paragraph"><p>If the <code>Filename</code>'s suffix is  <code>yaml</code>, <code>yml</code>, or <code>yamp</code> the file is assumed to contain a YAML file . If the suffix is <code>json</code> the file is parsed as JSON.</p></div>
@@ -1581,7 +1589,10 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #990000">-</span> &lt;filename&gt;</tt></pre></div></div>
 </div>
 <div class="sect2">
-<h3 id="_reading_data_files_with_code_load_code">Reading data files with <code>load</code></h3>
+<h3 id="_reading_data_files">Reading Data Files</h3>
+<div class="paragraph"><p>Sometimes you want to use raw data for parameters and variable values. For example you may have an inventory or database of facts. Yamp can load YAML or JSON data.</p></div>
+<div class="sect3">
+<h4 id="_reading_data_with_code_load_code">Reading Data with <code>load</code></h4>
 <div class="paragraph"><p>The <code>load</code> macro reads a single file of YAML or JSON data and returns the result. No variable substitutions or macro expansions are performed on the data. YAML data is returned as a list, one object for each <em>doc</em>. <span class="footnote"><br />[YAML files are subdivided into <em>docs</em> separated by <em>---</em>]<br /></span></p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.8
@@ -1601,6 +1612,62 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #990000">    </span><span style="color: #009900">value</span><span style="color: #990000">:</span> {load: file}
 <span style="color: #990000">- </span><span style="color: #009900">define</span><span style="color: #990000">:</span>
 <span style="color: #990000">    </span><span style="color: #009900">movie1</span><span style="color: #990000">:</span> {load: <span style="color: #FF0000">'../test/fixtures/blade-runner.json'</span>}</tt></pre></div></div>
+</div>
+<div class="sect3">
+<h4 id="_loading_shell_script_data">Loading Shell Script Data</h4>
+<div class="paragraph"><p>When you have shell variables in files which you want to use as input to expansion, you can load them into the environment of the yamp execution. For example here&#8217;s a script with some dynamic data:</p></div>
+<div class="listingblock">
+<div class="title">data.sh</div>
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">export</span></span> <span style="color: #009900">VARIABLE1</span><span style="color: #990000">=</span>value1
+<span style="font-weight: bold"><span style="color: #0000FF">export</span></span> <span style="color: #009900">VARIABLE2</span><span style="color: #990000">=</span><span style="color: #FF0000">"${VARIABLE1}_value2"</span>
+<span style="font-weight: bold"><span style="color: #0000FF">export</span></span> <span style="color: #009900">VARIABLE3</span><span style="color: #990000">=</span><span style="color: #FF0000">"${VARIABLE2}_value3"</span></tt></pre></div></div>
+<div class="paragraph"><p>The shell script must executed to determine the values. To load this into the Yamp environment, use shell wrappers like this:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ env -i bash --noprofile --norc -c <span style="color: #FF0000">'. data.sh ; echo env | python src/yamp.py - '</span></tt></pre></div></div>
+<div class="paragraph"><p>How does this work?</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>env -i bash</code> creates a bash process with an empty environment.
+</p>
+</li>
+<li>
+<p>
+<code>--noprofile --norc</code> prevent bash from reading profile fles on startup
+</p>
+</li>
+<li>
+<p>
+<code>-c '. data.sh</code> sources the shell script in the current (empty) environment
+</p>
+</li>
+<li>
+<p>
+<code>echo env | python src/yamp.py -</code> runs Yamp with an input of just <code>env</code> - this will output all the environment variables
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>The YAML output contains the variables we want plus a couple of variables <code>bash</code> always needs:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>PWD<span style="color: #990000">:</span> /home/birchb/workspace/yamp
+SHLVL<span style="color: #990000">:</span> <span style="color: #FF0000">'1'</span>
+VARIABLE1<span style="color: #990000">:</span> value1
+VARIABLE2<span style="color: #990000">:</span> value1_value2
+VARIABLE3<span style="color: #990000">:</span> value1_value2_value3
+_<span style="color: #990000">:</span> /usr/bin/python</tt></pre></div></div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_evaluating_python_expressions">Evaluating Python expressions</h3>
@@ -1701,7 +1768,7 @@ http://www.gnu.org/software/src-highlite -->
 <div id="footer-text">
 Version 0.2<br />
 Last updated
- 2019-05-04 14:35:23 AEST
+ 2019-05-04 16:20:25 AEST
 </div>
 </div>
 </body>

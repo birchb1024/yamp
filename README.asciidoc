@@ -131,7 +131,15 @@ The command to run yamp is a python invocation taking a single filename followed
 .Usage
 [source,bash]
 ----
-$ python yamp.py Filename [arg1..argn]
+$ python yamp.py [Filename | - ] [arg1..argn]
+----
+
+If the filename is the minus sign `-` Yamp reads YAML from the standard input, so it serves as a filter. As in
+
+[source,bash]
+----
+$ echo "[define: {data: {load: test/fixtures/blade-runner.json}}, data.director]" | python src/yamp.py - 
+- ' Ridley Scott'
 ----
 
 
@@ -772,7 +780,11 @@ include:
 - <filename>
 ----
 
-=== Reading data files with `load`
+=== Reading Data Files
+
+Sometimes you want to use raw data for parameters and variable values. For example you may have an inventory or database of facts. Yamp can load YAML or JSON data. 
+
+==== Reading Data with `load`
 
 The `load` macro reads a single file of YAML or JSON data and returns the result. No variable substitutions or macro expansions are performed on the data. YAML data is returned as a list, one object for each 'doc'. footnote:[YAML files are subdivided into 'docs' separated by '---']
 
@@ -792,6 +804,46 @@ Examples:
 - define:
     movie1: {load: '../test/fixtures/blade-runner.json'}
 ----
+
+==== Loading Shell Script Data
+
+When you have shell variables in files which you want to use as input to expansion, you can load them into the environment of the yamp execution. For example here's a script with some dynamic data:
+
+.data.sh
+[source,bash]
+----
+export VARIABLE1=value1
+export VARIABLE2="${VARIABLE1}_value2"
+export VARIABLE3="${VARIABLE2}_value3"
+----
+
+The shell script must executed to determine the values. To load this into the Yamp environment, use shell wrappers like this:
+
+[source,bash]
+----
+$ env -i bash --noprofile --norc -c '. data.sh ; echo env | python src/yamp.py - '
+----
+
+How does this work?
+
+* `env -i bash` creates a bash process with an empty environment.
+* `--noprofile --norc` prevent bash from reading profile fles on startup
+* `-c '. data.sh` sources the shell script in the current (empty) environment
+* `echo env | python src/yamp.py -` runs Yamp with an input of just `env` - this will output all the environment variables
+
+The YAML output contains the variables we want plus a couple of variables `bash` always needs:
+
+[source, Shell]
+----
+PWD: /home/birchb/workspace/yamp
+SHLVL: '1'
+VARIABLE1: value1
+VARIABLE2: value1_value2
+VARIABLE3: value1_value2_value3
+_: /usr/bin/python
+----
+
+
 
 
 === Evaluating Python expressions
