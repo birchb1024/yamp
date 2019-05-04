@@ -827,7 +827,7 @@ $ env -i bash --noprofile --norc -c '. data.sh ; echo env | python src/yamp.py -
 How does this work?
 
 * `env -i bash` creates a bash process with an empty environment.
-* `--noprofile --norc` prevent bash from reading profile fles on startup
+* `--noprofile --norc` prevent bash from reading profile files on startup
 * `-c '. data.sh` sources the shell script in the current (empty) environment
 * `echo env | python src/yamp.py -` runs Yamp with an input of just `env` - this will output all the environment variables
 
