@@ -24,6 +24,23 @@ YAML is human friendly data serialization standard. footnote:[YAML stands for YA
 - Hello: World
 ----
 
+=== Quick Start
+
+You just want to run it already? OK, use the docker image. Put your first Yamp file in `hello.yamp`:
+
+.hello.yamp
+[source, YAML]
+----
+"Hello {{argv.2}}"
+----
+
+And run it
+
+[source, bash]
+----
+$ docker run --rm -u $(id -u):$(id -g) -v "$HOME":/work docker.io/birchb1024/yamp /work/hello.yamp $USER
+----
+
 == Get Started
 
 Yamp is a Python 2.7 program contained in a single file. Hence one has to install https://www.python.org/:[Python] and the https://pypi.org/project/PyYAML/:[pyyaml] module.
@@ -150,6 +167,10 @@ If the `Filename`'s suffix is  `yaml`, `yml`, or `yamp` the file is assumed to c
 Any other file suffix can be used - it is assumed to be YAML. A warning is printed to alert you of a possible input mistake.
 
 In practice `yaml` will be recognised by most text editors' YAML editting mode. You will need to configure your text editor if you use a non-standard suffix.
+
+==== Docker
+
+$ echo env | docker run -i --rm -u $(id -u):$(id -g) -v "$PWD":/work docker.io/birchb1024/yamp -
 
 === Processing
 
