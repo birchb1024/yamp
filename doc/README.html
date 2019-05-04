@@ -736,8 +736,8 @@ asciidoc.install(2);
 <h1>Yamp - Yet Another Macro Processor - for YAML</h1>
 <span id="author">Peter Birch</span><br />
 <span id="email"><code>&lt;<a href="mailto:birchb1024@gmail.com">birchb1024@gmail.com</a>&gt;</code></span><br />
-<span id="revnumber">version 0.1,</span>
-<span id="revdate">2019-01-27</span>
+<span id="revnumber">version 0.2,</span>
+<span id="revdate">2019-05-04</span>
 <div id="toc">
   <div id="toctitle">Table of Contents</div>
   <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
@@ -781,7 +781,7 @@ http://www.gnu.org/software/src-highlite -->
 <div class="ulist"><ul>
 <li>
 <p>
-First obtain a copy of the Yamp program. If you&#8217;re reading this you probably did this already!
+First obtain a copy of the Yamp program. If you&#8217;re reading this you probably did that already!
 </p>
 </li>
 <li>
@@ -919,6 +919,23 @@ a macro call - block style
 <h2 id="_reference">Reference</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>This section describes the operation of the processor and the macros available.</p></div>
+<div class="sect2">
+<h3 id="_the_command_line">The Command Line</h3>
+<div class="paragraph"><p>The command to run yamp is a python invocation taking a single filename followed by optional arguments.</p></div>
+<div class="listingblock">
+<div class="title">Usage</div>
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ python yamp<span style="color: #990000">.</span>py Filename <span style="color: #990000">[</span>arg1<span style="color: #990000">..</span>argn<span style="color: #990000">]</span></tt></pre></div></div>
+<div class="sect3">
+<h4 id="_file_suffixes">File Suffixes</h4>
+<div class="paragraph"><p>If the <code>Filename</code>'s suffix is  <code>yaml</code>, <code>yml</code>, or <code>yamp</code> the file is assumed to contain a YAML file . If the suffix is <code>json</code> the file is parsed as JSON.</p></div>
+<div class="paragraph"><p>Any other file suffix can be used - it is assumed to be YAML. A warning is printed to alert you of a possible input mistake.</p></div>
+<div class="paragraph"><p>In practice &#8216;yaml` will be recognised by most text editors&#8217; YAML editting mode. You will need to configure your text editor if you use a non-standard suffix.</p></div>
+</div>
+</div>
 <div class="sect2">
 <h3 id="_processing">Processing</h3>
 <div class="paragraph"><p>When Yamp starts, it collects the command-line arguments and assigns the list to the variable <code>argv</code>. It collects the process environment and assigns it to the map variable <code>env</code>. Yamp then reads the input file, attempts to parse the YAML and holds the resulting data as objects in memory. (If the YAML does not parse Yamp exits). It recursively scans the objects looking for strings which are the same as defined variables or which contain variables inside the string in curly braces. If it finds a match, it substitutes the object with the variable&#8217;s value.</p></div>
@@ -1682,9 +1699,9 @@ http://www.gnu.org/software/src-highlite -->
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Version 0.1<br />
+Version 0.2<br />
 Last updated
- 2019-05-03 02:47:37 AEST
+ 2019-05-04 14:35:23 AEST
 </div>
 </div>
 </body>

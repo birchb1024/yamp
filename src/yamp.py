@@ -575,11 +575,13 @@ def expand_file(filename, bindings, expandafterload=True, outputfile=None):
     # Now try to figure out the file type
     file_types = {  'yaml' : expand_yaml, 
                     'yml'  : expand_yaml,
-                    'json' : expand_json }
+                    'yamp' : expand_yaml,
+                    'json' : expand_json}
     suffix = filename.split('.')[-1]
     if not suffix in file_types:
-        raise(YampException('Unknown file type "{}", file types are {}.'.format(filename, file_types.keys())))
-
+        sys.stdout.write('Yamp: unknown file type "{}", file types are {}. Attempting YALM...\n'.format(filename, file_types.keys()))
+        file_types[suffix] = expand_yaml
+        
     if not outputfile:
         # Probably an include - assume we can inherit the output.
         outputfile = bindings['__current_output__']

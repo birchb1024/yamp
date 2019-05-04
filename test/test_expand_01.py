@@ -533,10 +533,10 @@ class TestYamp(unittest.TestCase):
         current_directory = os.path.dirname(os.path.abspath(__file__))
 
         self.assertEquals([
-            os.path.join(current_directory, 'fixtures/file1.yaml'),
+            os.path.join(current_directory, 'fixtures/file1.yamp'),
             os.path.join(current_directory, 'fixtures/file2.yaml')],
              expand([
-                {'include': ['fixtures/file1.yaml', 'fixtures/{{FILENAME}}.yaml']},
+                {'include': ['fixtures/file1.yamp', 'fixtures/{{FILENAME}}.yaml']},
                 '$f1',
                 '$f2'], global_environment))
 
