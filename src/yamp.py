@@ -375,6 +375,13 @@ def flatone_builtin(tree, args, bindings):
             raise(YampException('Syntax error was expecting list in {} got {}'.format(tree, args)))
     return flat_list(1, args)
 
+def merge_builtin(tree, args, bindings):
+    if len(tree.keys()) != 1:
+            raise(YampException('Syntax error too many keys in {}'.format(tree)))
+    if type(args) != list:
+            raise(YampException('Syntax error was expecting list in {}'.format(tree)))
+    return merge_maps(args, bindings)
+
 def load_builtin(tree, args, bindings):
     if len(tree.keys()) != 1:
             raise(YampException('Syntax error too many keys in {}'.format(tree)))
@@ -405,6 +412,7 @@ def add_builtins_to_env(env):
 
     add_new_builtin('flatten', flatten_builtin)
     add_new_builtin('flatone', flatone_builtin)
+    add_new_builtin('merge', merge_builtin)
     add_new_builtin('==', equals_builtin)
     add_new_builtin('+', plus_builtin)
     add_new_builtin('load', load_builtin)
@@ -443,13 +451,6 @@ def expand(tree, bindings):
         return newlist
     elif type(tree) == dict:
         newdict = {}
-
-        if 'merge' in tree.keys():
-            if len(tree.keys()) != 1:
-                    raise(YampException('Syntax error too many keys in {}'.format(tree)))
-            if type(tree['merge']) != list:
-                    raise(YampException('Syntax error was expecting list in {}'.format(tree)))
-            return merge_maps(tree['merge'], bindings)
 
         if 'range' in tree.keys():
             statement = tree['range']
