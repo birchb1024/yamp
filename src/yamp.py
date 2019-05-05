@@ -407,6 +407,9 @@ def load_builtin(tree, args, bindings):
 def python_builtin(tree, args, bindings):
     return expand_python(tree, bindings)
 
+def repeat_builtin(tree, args, bindings):
+    return expand_repeat(tree, bindings)
+
 def undefine_builtin(tree, args, bindings):
     if len(tree.keys()) != 1:
             raise(YampException('Syntax error too many keys in {}'.format(tree)))
@@ -454,6 +457,7 @@ def add_builtins_to_env(env):
 
     add_new_builtin('undefine', undefine_builtin, 'lazy')
     add_new_builtin('if', if_builtin, 'lazy')
+    add_new_builtin('repeat', repeat_builtin, 'lazy')
 
     add_new_builtin('python', python_builtin, 'quote')
     add_new_builtin('quote', quote_builtin, 'quote')
@@ -504,9 +508,6 @@ def expand(tree, bindings):
                 raise(YampException('Syntax error "{}" not a string in {}'.format(tree['define']['name'], tree)))
             bindings[tree['define']['name']] = expand(tree['define']['value'], bindings)
             return None
-
-        if 'repeat' in tree.keys():
-            return expand_repeat(tree, bindings)
 
         if 'defmacro' in tree.keys():
             if not tree['defmacro']:
