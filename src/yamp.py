@@ -333,6 +333,79 @@ def merge_maps(mappy, bindings):
                 result[k] = v
     return result
 
+def equals_builtin(tree, args, bindings):
+    if len(tree.keys()) != 1:
+            raise(YampException('Syntax error too many keys in {}'.format(tree)))
+    if type(args) != list:
+            raise(YampException('Syntax error was expecting list in {}'.format(tree)))
+    if len(args) < 2:
+            raise(YampException('Syntax error was expecting list(2) in {}'.format(tree)))
+    expect = args[0]
+    for item in args:
+        if item != expect:
+            return False
+    return True
+
+def plus_builtin(tree, args, bindings):
+    if len(tree.keys()) != 1:
+            raise(YampException('Syntax error too many keys in {}'.format(tree)))
+    if type(args) != list:
+            raise(YampException('Syntax error was expecting list in {}'.format(tree)))
+    if len(args) < 2:
+            raise(YampException('Syntax error was expecting list(2) in {}'.format(tree)))
+    sum = 0
+    for item in args:
+        if not isinstance(item, numbers.Number):
+            raise(YampException('Was expecting number in {}'.format(tree)))
+        sum += item
+    return sum
+
+
+def flatone_builtin(tree, args, bindings):
+    if len(tree.keys()) != 1:
+            raise(YampException('Syntax error too many keys in {}'.format(tree)))
+    if type(args) != list:
+            raise(YampException('Syntax error was expecting list in {} got {}'.format(tree, args)))
+    return flat_list(1, args)
+
+def load_builtin(tree, args, bindings):
+    if len(tree.keys()) != 1:
+            raise(YampException('Syntax error too many keys in {}'.format(tree)))
+    if type(args) != str:
+            raise(YampException('Syntax error was expecting string in {}'.format(tree)))
+    return expand_file(args, bindings, expandafterload=False)
+
+def undefine_builtin(tree, args, bindings):
+    if len(tree.keys()) != 1:
+            raise(YampException('Syntax error too many keys in {}'.format(tree)))
+    if type(args) != str:
+            raise(YampException('Syntax error was expecting string in {} got {}'.format(tree, args)))
+    if args in bindings:
+        del bindings[args]
+    return None
+
+def quote_builtin(tree, args, bindings):
+    if len(tree.keys()) != 1:
+            raise(YampException('Syntax error too many keys in {}'.format(tree)))
+    return args
+
+def add_builtins_to_env(env):
+    """
+    Utility function to add all the builtins to an environment
+    """
+    def add_new_builtin(name, fn, func_type='eager'):
+        env[name] = new_macro({'name': name, 'args': 'varargs', 'value': fn, 'macro_type': func_type},  env) 
+
+    add_new_builtin('flatone', flatone_builtin)
+    add_new_builtin('==', equals_builtin)
+    add_new_builtin('+', plus_builtin)
+    add_new_builtin('load', load_builtin)
+
+    add_new_builtin('undefine', undefine_builtin, 'lazy')
+    add_new_builtin('quote', quote_builtin, 'quote')
+    
+    return env
+
 
 def expand(tree, bindings):
     """
@@ -362,11 +435,6 @@ def expand(tree, bindings):
         return newlist
     elif type(tree) == dict:
         newdict = {}
-
-        if 'quote' in tree.keys():
-            if len(tree.keys()) != 1:
-                    raise(YampException('Syntax error too many keys in {}'.format(tree)))
-            return tree['quote']
 
         if 'flatten' in tree.keys():
             if len(tree.keys()) != 1:
@@ -459,8 +527,10 @@ def expand(tree, bindings):
                     raise(YampException('ERROR: too many keys in macro call "{}" {}'.format(k, tree.keys())))
                 if func[0] == 'eager':
                     return(expand(func[1](tree, expand(v, bindings), bindings), bindings))
-                else:
+                elif func[0] == 'lazy':
                     return(expand(func[1](tree, v, bindings), bindings))
+                else: # quote
+                    return(func[1](tree, v, bindings))
             interp_k = interpolate(k, bindings)
             if interp_k != k:
                 # string containing {{ }} - only these keys are expanded
@@ -581,56 +651,6 @@ def expand_file(filename, bindings, expandafterload=True, outputfile=None):
     bindings['__FILE__'] = current_file # restore prior file
     return result
 
-def equals_builtin(tree, args, bindings):
-    if len(tree.keys()) != 1:
-            raise(YampException('Syntax error too many keys in {}'.format(tree)))
-    if type(args) != list:
-            raise(YampException('Syntax error was expecting list in {}'.format(tree)))
-    if len(args) < 2:
-            raise(YampException('Syntax error was expecting list(2) in {}'.format(tree)))
-    expect = args[0]
-    for item in args:
-        if item != expect:
-            return False
-    return True
-
-def plus_builtin(tree, args, bindings):
-    if len(tree.keys()) != 1:
-            raise(YampException('Syntax error too many keys in {}'.format(tree)))
-    if type(args) != list:
-            raise(YampException('Syntax error was expecting list in {}'.format(tree)))
-    if len(args) < 2:
-            raise(YampException('Syntax error was expecting list(2) in {}'.format(tree)))
-    sum = 0
-    for item in args:
-        if not isinstance(item, numbers.Number):
-            raise(YampException('Was expecting number in {}'.format(tree)))
-        sum += item
-    return sum
-
-
-def flatone_builtin(tree, args, bindings):
-    if len(tree.keys()) != 1:
-            raise(YampException('Syntax error too many keys in {}'.format(tree)))
-    if type(args) != list:
-            raise(YampException('Syntax error was expecting list in {} got {}'.format(tree, args)))
-    return flat_list(1, args)
-
-def load_builtin(tree, args, bindings):
-    if len(tree.keys()) != 1:
-            raise(YampException('Syntax error too many keys in {}'.format(tree)))
-    if type(args) != str:
-            raise(YampException('Syntax error was expecting string in {}'.format(tree)))
-    return expand_file(args, bindings, expandafterload=False)
-
-def undefine_builtin(tree, args, bindings):
-    if len(tree.keys()) != 1:
-            raise(YampException('Syntax error too many keys in {}'.format(tree)))
-    if type(args) != str:
-            raise(YampException('Syntax error was expecting string in {} got {}'.format(tree, args)))
-    if args in bindings:
-        del bindings[args]
-    return None
 
 def new_globals():
 
@@ -638,20 +658,6 @@ def new_globals():
     add_builtins_to_env(global_environment)    
     return global_environment
 
-def add_builtins_to_env(env):
-    """
-    Utility function to add all the builtins to an environment
-    """
-    def add_new_builtin(name, fn, func_type='eager'):
-        env[name] = new_macro({'name': name, 'args': 'varargs', 'value': fn, 'macro_type': func_type},  env) 
-
-    add_new_builtin('flatone', flatone_builtin)
-    add_new_builtin('==', equals_builtin)
-    add_new_builtin('+', plus_builtin)
-    add_new_builtin('load', load_builtin)
-    add_new_builtin('undefine', undefine_builtin, 'lazy')
-    
-    return env
 
 if __name__ == '__main__':
 
