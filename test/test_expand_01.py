@@ -11,6 +11,16 @@ sys.path.append(curr_path + '/../src')
 
 from yamp import *
 
+real_expand = expand
+
+def expand(tree, env):
+    """
+    Provide expand() function for testing that incorporates builtins.
+    """
+    global_env =  new_globals()
+    global_env.update(env)
+    return real_expand(tree, global_env)
+
 
 class TestYamp(unittest.TestCase):
 
@@ -545,6 +555,7 @@ class TestYamp(unittest.TestCase):
             '__FILE__' : os.path.abspath(__file__),
             'DIRNAME' : 'fixtures',
             '__current_output__' : sys.stdout}
+        add_builtins_to_env(global_environment)
         self.assertEquals(
              [{'dev':   {'webserver': {'hostname': 'web02', 'ip': '1.1.2.4'}},
                'perf0': {'webserver': {'hostname': 'web01', 'ip': '1.1.2.3'}}},
@@ -556,6 +567,7 @@ class TestYamp(unittest.TestCase):
         global_environment = {
             '__FILE__' : os.path.abspath(__file__),
             '__current_output__' : sys.stdout}
+        add_builtins_to_env(global_environment)
         self.assertEquals(
              'Blade Runner',
              expand({'load': 'fixtures/blade-runner.json'}, global_environment)[u'name'])
@@ -569,9 +581,9 @@ class TestYamp(unittest.TestCase):
         self.assertEquals([1,2,{'x':22},4], flatten_list([1,[2],[[{'x':22}]],[[[4]]]], {}))
 
     def testFlatoneList(self):
-        self.assertEquals([1,2,[3],[[4]]], flat_list(1, [1,[2],[[3]],[[[4]]]], {}))
-        self.assertEquals([1,'a',[3],[[4]]], flat_list(1, [1,['a'],[[3]],[[[4]]]], {}))
-        self.assertEquals([1,2,{'x':22},[4]], flat_list(2, [1,[2],[[{'x':22}]],[[[4]]]], {}))
+        self.assertEquals([1,2,[3],[[4]]], flat_list(1, [1,[2],[[3]],[[[4]]]]))
+        self.assertEquals([1,'a',[3],[[4]]], flat_list(1, [1,['a'],[[3]],[[[4]]]]))
+        self.assertEquals([1,2,{'x':22},[4]], flat_list(2, [1,[2],[[{'x':22}]],[[[4]]]]))
 
     def testFlatten(self):
         self.assertEquals(
@@ -598,6 +610,7 @@ class TestYamp(unittest.TestCase):
         path_to_test = os.path.join(curr_path, file_to_test)
         path_fixture = os.path.join(curr_path, fixture)
         global_environment = { 'argv': [], '__FILE__' :  path_to_test } # Fake environments
+        add_builtins_to_env(global_environment)    
         expand_file(path_to_test, global_environment, expandafterload=True, outputfile=outputfilestream)
         outputfilestream.close()
         

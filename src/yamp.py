@@ -11,6 +11,7 @@ import os
 import re
 import sys
 import json
+from pprint import pprint
 import numbers
 import datetime
 from yaml import load, Loader, dump, load_all
@@ -80,7 +81,7 @@ def new_macro(tree, bindings):
     name = tree['name']
     body = tree['value']
     parameters = tree['args'] or []
-    def apply(args):
+    def apply(syntax, args, dynamic_bindings):
         """
         Given a map of arguments, create a new local environment for this macro expansion, bind the args to the new
         enviroment, then expand the captured body and return the result. If the captured parameters variable is a string, it is
@@ -95,13 +96,16 @@ def new_macro(tree, bindings):
         if type(parameters) == list and parameters and args:
             if set(parameters or []) != set(args.keys()):
                 raise(YampException('Argument mismatch in {} expected {} got {}'.format(name, parameters, args)))
-        macro_env = {'__parent__': bindings}
-        if type(parameters) == str: # varargs
-            macro_env[parameters] = args
+        if type(body) == type(expand): # Is this a built-in python function?
+            return body(syntax, args, dynamic_bindings)
         else:
-            if args: # Might be None for no args
-                macro_env.update(args)
-        return expand(body, macro_env)
+            macro_env = {'__parent__': bindings}
+            if type(parameters) == str: # varargs
+                macro_env[parameters] = args
+            else:
+                if args: # Might be None for no args
+                    macro_env.update(args)
+            return expand(body, macro_env)
     return apply
 
 
@@ -292,9 +296,9 @@ def flatten_list(listy, bindings):
             result.extend(flatten_list(item, bindings)) # list
     return result
 
-def flat_list(depth, listy, bindings):
+def flat_list(depth, listy):
     """
-    Expand and flatten a variable level list of lists.
+    Flatten a variable level list of lists.
     Depth gives how many levels to descend.
     Lists in maps are not flattened.
     :param listy: list of lists to expand and flatten
@@ -304,12 +308,11 @@ def flat_list(depth, listy, bindings):
     if depth == 0:
         return listy
     result = []
-    for rawitem in listy:
-        item = expand(rawitem, bindings)
+    for item in listy:
         if not type(item) == list:
             result.append(item) # atoms or maps
         else:
-            result.extend(flat_list(depth -1, item, bindings)) # list
+            result.extend(flat_list(depth -1, item)) # list
     return result
 
 def merge_maps(mappy, bindings):
@@ -364,47 +367,12 @@ def expand(tree, bindings):
                     raise(YampException('Syntax error too many keys in {}'.format(tree)))
             return tree['quote']
 
-        if '==' in tree.keys():
-            if len(tree.keys()) != 1:
-                    raise(YampException('Syntax error too many keys in {}'.format(tree)))
-            if type(tree['==']) != list:
-                    raise(YampException('Syntax error was expecting list in {}'.format(tree)))
-            if len(tree['==']) < 2:
-                    raise(YampException('Syntax error was expecting list(2) in {}'.format(tree)))
-            expect = expand(tree['=='][0], bindings)
-            for item in tree['==']:
-                if expand(item, bindings) != expect:
-                    return False
-            return True
-
-        if '+' in tree.keys():
-            if len(tree.keys()) != 1:
-                    raise(YampException('Syntax error too many keys in {}'.format(tree)))
-            if type(tree['+']) != list:
-                    raise(YampException('Syntax error was expecting list in {}'.format(tree)))
-            if len(tree['+']) < 2:
-                    raise(YampException('Syntax error was expecting list(2) in {}'.format(tree)))
-            sum = 0
-            for item in tree['+']:
-                item_ex = expand(item, bindings)
-                if not isinstance(item_ex, numbers.Number):
-                    raise(YampException('Was expecting number in {}'.format(tree)))
-                sum += item_ex
-            return sum
-
         if 'flatten' in tree.keys():
             if len(tree.keys()) != 1:
                     raise(YampException('Syntax error too many keys in {}'.format(tree)))
             if type(tree['flatten']) != list:
                     raise(YampException('Syntax error was expecting list in {}'.format(tree)))
             return flatten_list(tree['flatten'], bindings)
-
-        if 'flatone' in tree.keys():
-            if len(tree.keys()) != 1:
-                    raise(YampException('Syntax error too many keys in {}'.format(tree)))
-            if type(tree['flatone']) != list:
-                    raise(YampException('Syntax error was expecting list in {}'.format(tree)))
-            return flat_list(1, tree['flatone'], bindings)
 
         if 'merge' in tree.keys():
             if len(tree.keys()) != 1:
@@ -483,19 +451,12 @@ def expand(tree, bindings):
                 expand_file(expand(filename, bindings), bindings)
             return None
 
-        if 'load' in tree.keys():
-            if len(tree.keys()) != 1:
-                    raise(YampException('Syntax error too many keys in {}'.format(tree)))
-            if type(tree['load']) != str:
-                    raise(YampException('Syntax error was expecting string in {}'.format(tree)))
-            return expand_file(expand(tree['load'], bindings), bindings, expandafterload=False)
-
         for k,v in tree.iteritems():
             new_k = expand(k, bindings)
             if type(new_k) == type(expand):
                 if len(tree.keys()) != 1:
                     raise(YampException('ERROR: too many keys in macro call "{}" {}'.format(k, tree.keys())))
-                return(expand(new_k(expand(v, bindings)), bindings))
+                return(expand(new_k(tree, expand(v, bindings), bindings), bindings))
             interp_k = interpolate(k, bindings)
             if interp_k != k:
                 # string containing {{ }} - only these keys are expanded
@@ -616,6 +577,68 @@ def expand_file(filename, bindings, expandafterload=True, outputfile=None):
     bindings['__FILE__'] = current_file # restore prior file
     return result
 
+def equals_builtin(tree, args, bindings):
+    if len(tree.keys()) != 1:
+            raise(YampException('Syntax error too many keys in {}'.format(tree)))
+    if type(args) != list:
+            raise(YampException('Syntax error was expecting list in {}'.format(tree)))
+    if len(args) < 2:
+            raise(YampException('Syntax error was expecting list(2) in {}'.format(tree)))
+    expect = args[0]
+    for item in args:
+        if item != expect:
+            return False
+    return True
+
+def plus_builtin(tree, args, bindings):
+    if len(tree.keys()) != 1:
+            raise(YampException('Syntax error too many keys in {}'.format(tree)))
+    if type(args) != list:
+            raise(YampException('Syntax error was expecting list in {}'.format(tree)))
+    if len(args) < 2:
+            raise(YampException('Syntax error was expecting list(2) in {}'.format(tree)))
+    sum = 0
+    for item in args:
+        if not isinstance(item, numbers.Number):
+            raise(YampException('Was expecting number in {}'.format(tree)))
+        sum += item
+    return sum
+
+
+def flatone_builtin(tree, args, bindings):
+    if len(tree.keys()) != 1:
+            raise(YampException('Syntax error too many keys in {}'.format(tree)))
+    if type(args) != list:
+            raise(YampException('Syntax error was expecting list in {} got {}'.format(tree, args)))
+    return flat_list(1, args)
+
+def load_builtin(tree, args, bindings):
+    if len(tree.keys()) != 1:
+            raise(YampException('Syntax error too many keys in {}'.format(tree)))
+    if type(args) != str:
+            raise(YampException('Syntax error was expecting string in {}'.format(tree)))
+    return expand_file(args, bindings, expandafterload=False)
+
+def new_globals():
+
+    global_environment = {'__FILE__': None, 'argv' : sys.argv, 'env': os.environ.copy()}
+    add_builtins_to_env(global_environment)    
+    return global_environment
+
+def add_builtins_to_env(env):
+    """
+    Utility function to add all the builtins to an environment
+    """
+    def add_new_builtin(name, fn):
+        env[name] = new_macro({'name': name, 'args': 'varargs', 'value': fn},  env) 
+
+    add_new_builtin('flatone', flatone_builtin)
+    add_new_builtin('==', equals_builtin)
+    add_new_builtin('+', plus_builtin)
+    add_new_builtin('load', load_builtin)
+    
+    return env
+
 if __name__ == '__main__':
 
     if len(sys.argv) < 2:
@@ -623,6 +646,6 @@ if __name__ == '__main__':
         sys.exit(1)
 
     filename  = sys.argv[1]
-    expand_file(filename, {'__FILE__': None, 'argv' : sys.argv, 'env': os.environ.copy()}, expandafterload=True, outputfile=sys.stdout)
+    expand_file(filename, new_globals(), expandafterload=True, outputfile=sys.stdout)
 
 
