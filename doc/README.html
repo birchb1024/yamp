@@ -963,7 +963,13 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="sect3">
 <h4 id="_docker">Docker</h4>
-<div class="paragraph"><p>$ echo env | docker run -i --rm -u $(id -u):$(id -g) -v "$PWD":/work docker.io/birchb1024/yamp -</p></div>
+<div class="paragraph"><p>A docker image is provided in docker.io (Docker Hub) <a href="https://cloud.docker.com/repository/docker/birchb1024/yamp">here</a>. This image includes Python and its libraries on a slim Debian base. To use it you need to map your workspace into the container and use your current user id. In general:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>$ docker run --rm -u <span style="color: #009900">$(</span>id -u<span style="color: #990000">):</span><span style="color: #009900">$(</span>id -g<span style="color: #990000">)</span> -v <span style="color: #FF0000">"$HOME"</span><span style="color: #990000">:</span>/work docker<span style="color: #990000">.</span>io/birchb<span style="color: #993399">1024</span>/yamp<span style="color: #990000">:</span><span style="color: #993399">0.2</span><span style="color: #990000">.</span><span style="color: #993399">0</span> /work<span style="color: #990000">/</span>{path to yout code}<span style="color: #990000">.</span>yaml <span style="color: #990000">[</span>arg1<span style="color: #990000">,</span> arg2<span style="color: #990000">...]</span> <span style="color: #990000">&gt;</span> outputfile<span style="color: #990000">.</span>yaml</tt></pre></div></div>
 </div>
 </div>
 <div class="sect2">
@@ -1812,7 +1818,7 @@ http://www.gnu.org/software/src-highlite -->
 <div id="footer-text">
 Version 0.2<br />
 Last updated
- 2019-05-05 20:28:00 AEST
+ 2019-05-05 20:53:29 AEST
 </div>
 </div>
 </body>

@@ -170,7 +170,12 @@ In practice `yaml` will be recognised by most text editors' YAML editting mode. 
 
 ==== Docker
 
-$ echo env | docker run -i --rm -u $(id -u):$(id -g) -v "$PWD":/work docker.io/birchb1024/yamp -
+A docker image is provided in docker.io (Docker Hub) https://cloud.docker.com/repository/docker/birchb1024/yamp[here]. This image includes Python and its libraries on a slim Debian base. To use it you need to map your workspace into the container and use your current user id. In general:
+
+[source, bash]
+----
+$ docker run --rm -u $(id -u):$(id -g) -v "$HOME":/work docker.io/birchb1024/yamp:0.2.0 /work/{path to yout code}.yaml [arg1, arg2...] > outputfile.yaml
+----
 
 === Processing
 
