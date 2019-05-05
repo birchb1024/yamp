@@ -402,6 +402,9 @@ def load_builtin(tree, args, bindings):
             raise(YampException('Syntax error was expecting string in {}'.format(tree)))
     return expand_file(args, bindings, expandafterload=False)
 
+def python_builtin(tree, args, bindings):
+    return expand_python(tree, bindings)
+
 def undefine_builtin(tree, args, bindings):
     if len(tree.keys()) != 1:
             raise(YampException('Syntax error too many keys in {}'.format(tree)))
@@ -432,6 +435,8 @@ def add_builtins_to_env(env):
     add_new_builtin('load', load_builtin)
 
     add_new_builtin('undefine', undefine_builtin, 'lazy')
+    add_new_builtin('python', python_builtin, 'quote')
+
     add_new_builtin('quote', quote_builtin, 'quote')
     
     return env
@@ -466,9 +471,6 @@ def expand(tree, bindings):
     elif type(tree) == dict:
         newdict = {}
 
-
-        if 'python' in tree.keys():
-            return expand_python(tree, bindings)
 
         if 'if' in tree.keys():
             if 'else' not in tree.keys() and 'then' not in tree.keys():
