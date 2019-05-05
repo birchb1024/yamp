@@ -20,6 +20,45 @@ mymap:
 - e
 - '*************** File: config.yaml *****************'
 ---
+- '*************** File: flatten.yaml *****************'
+---
+- /home/elvis
+- /home/madonna
+- /var
+- /log
+---
+- 1
+- 2
+- 3
+- 4
+- 5
+- 6
+- 7
+---
+a: -1
+b: 2
+c: 3
+---
+- app: tetris
+  hostname: tetris.games.org
+  ip: 1.1.1.1
+  site: Kansas
+---
+- '*************** File: flatten-repeat.yaml *****************'
+---
+- name: start-all-pcf-automation-tasks
+  plan:
+  - get: bbr-om-installation-pipelinetask
+    trigger: true
+  - get: isolation-segment-s3
+    passed: '[get-new-resources]'
+  - get: metrics-s3
+    passed: '[get-new-resources]'
+  - get: rabbitmq-s3
+    passed: '[get-new-resources]'
+  - get: pcf-automation-image-s3
+    passed: '[get-new-resources]'
+---
 - '*************** File: foo.yaml *****************'
 ---
 - foo: 78
@@ -448,6 +487,10 @@ Deploy_App_SVT:
     stage: run start
   Start_server_5:
     stage: run start
+- index_12: 112
+  some: step
+- index_13: 113
+  some: step
 - '*************** File: config.yaml *****************'
 ---
 - '*************** File: replace.yaml *****************'
@@ -548,54 +591,6 @@ pipelines:
                 command: /bin/bash
                 run_if: passed
 ---
-- '*************** File: varargs.yaml *****************'
----
-- one:
-  - 1
-  - 7
-  - '{ { a }} { { a }}'
-- two: 77
----
-- hosts: webservers
-  remote_user: root
-  tasks:
-  - name: Install apache
-    yum:
-      name: apache
-      state: latest
-  vars:
-    http_port: 80
-    max_clients: 200
----
-- env: prod
-  host: lpp23423
-- env: perf
-  host: lp123123
----
-- '*************** File: flatten.yaml *****************'
----
-- /home/elvis
-- /home/madonna
-- /var
-- /log
----
-- 1
-- 2
-- 3
-- 4
-- 5
-- 6
-- 7
----
-a: -1
-b: 2
-c: 3
----
-- app: tetris
-  hostname: tetris.games.org
-  ip: 1.1.1.1
-  site: Kansas
----
 - '*************** File: undefine.yaml *****************'
 ---
 - - 2
@@ -621,3 +616,27 @@ c: 3
     - 5
   - - - 6
       - 7
+---
+- '*************** File: varargs.yaml *****************'
+---
+- one:
+  - 1
+  - 7
+  - '{ { a }} { { a }}'
+- two: 77
+---
+- hosts: webservers
+  remote_user: root
+  tasks:
+  - name: Install apache
+    yum:
+      name: apache
+      state: latest
+  vars:
+    http_port: 80
+    max_clients: 200
+---
+- env: prod
+  host: lpp23423
+- env: perf
+  host: lp123123
