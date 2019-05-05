@@ -397,6 +397,17 @@ def merge_builtin(tree, args, bindings):
             raise(YampException('Syntax error was expecting list in {}'.format(tree)))
     return merge_maps(args, bindings)
 
+def include_builtin(tree, args, bindings):
+    if len(tree.keys()) != 1:
+            raise(YampException('Syntax error too many keys in {}'.format(tree)))
+    if type(args) != list:
+            raise(YampException('Syntax error was expecting list in {}'.format(tree)))
+    for filename in args:
+        if type(filename) != str:
+            raise(YampException('Syntax error was list of string in {}'.format(tree)))
+        expand_file(expand(filename, bindings), bindings)
+    return None
+
 def load_builtin(tree, args, bindings):
     if len(tree.keys()) != 1:
             raise(YampException('Syntax error too many keys in {}'.format(tree)))
@@ -453,6 +464,7 @@ def add_builtins_to_env(env):
     add_new_builtin('==', equals_builtin)
     add_new_builtin('+', plus_builtin)
     add_new_builtin('range', range_builtin)
+    add_new_builtin('include', include_builtin)
     add_new_builtin('load', load_builtin)
 
     add_new_builtin('undefine', undefine_builtin, 'lazy')
@@ -516,17 +528,6 @@ def expand(tree, bindings):
                 if required not in tree['defmacro']:
                     raise(YampException('Syntax error {} missing in {}'.format(required, tree)))
             bindings[tree['defmacro']['name']] = new_macro(tree['defmacro'], bindings)
-            return None
-
-        if 'include' in tree.keys():
-            if len(tree.keys()) != 1:
-                    raise(YampException('Syntax error too many keys in {}'.format(tree)))
-            if type(tree['include']) != list:
-                    raise(YampException('Syntax error was expecting list in {}'.format(tree)))
-            for filename in tree['include']:
-                if type(filename) != str:
-                    raise(YampException('Syntax error was list of string in {}'.format(tree)))
-                expand_file(expand(filename, bindings), bindings)
             return None
 
         for k,v in tree.iteritems():
