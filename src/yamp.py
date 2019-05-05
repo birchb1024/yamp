@@ -361,6 +361,13 @@ def plus_builtin(tree, args, bindings):
     return sum
 
 
+def flatten_builtin(tree, args, bindings):
+    if len(tree.keys()) != 1:
+            raise(YampException('Syntax error too many keys in {}'.format(tree)))
+    if type(args) != list:
+            raise(YampException('Syntax error was expecting list in {}'.format(tree)))
+    return flatten_list(args, bindings)
+
 def flatone_builtin(tree, args, bindings):
     if len(tree.keys()) != 1:
             raise(YampException('Syntax error too many keys in {}'.format(tree)))
@@ -396,6 +403,7 @@ def add_builtins_to_env(env):
     def add_new_builtin(name, fn, func_type='eager'):
         env[name] = new_macro({'name': name, 'args': 'varargs', 'value': fn, 'macro_type': func_type},  env) 
 
+    add_new_builtin('flatten', flatten_builtin)
     add_new_builtin('flatone', flatone_builtin)
     add_new_builtin('==', equals_builtin)
     add_new_builtin('+', plus_builtin)
@@ -435,13 +443,6 @@ def expand(tree, bindings):
         return newlist
     elif type(tree) == dict:
         newdict = {}
-
-        if 'flatten' in tree.keys():
-            if len(tree.keys()) != 1:
-                    raise(YampException('Syntax error too many keys in {}'.format(tree)))
-            if type(tree['flatten']) != list:
-                    raise(YampException('Syntax error was expecting list in {}'.format(tree)))
-            return flatten_list(tree['flatten'], bindings)
 
         if 'merge' in tree.keys():
             if len(tree.keys()) != 1:
