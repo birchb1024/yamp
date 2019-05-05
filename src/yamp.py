@@ -360,6 +360,19 @@ def plus_builtin(tree, args, bindings):
         sum += item
     return sum
 
+def range_builtin(tree, statement, bindings):
+    if len(tree.keys()) != 1:
+            raise(YampException('Syntax error too many keys in {}'.format(tree)))
+    if type(statement) != list:
+            raise(YampException('Syntax error was expecting list in {}'.format(tree)))
+    if len(statement) < 2:
+            raise(YampException('Syntax error was expecting list(2) in {}'.format(tree)))
+    start = str(expand(statement[0], bindings))
+    end = str(expand(statement[1], bindings))
+    for item in [start, end]:
+        if not item.isdigit():
+            raise(YampException('Syntax error was expecting integer range in {}, got {}'.format(tree, item)))
+    return list(range(int(start), int(end)+1))
 
 def flatten_builtin(tree, args, bindings):
     if len(tree.keys()) != 1:
@@ -415,6 +428,7 @@ def add_builtins_to_env(env):
     add_new_builtin('merge', merge_builtin)
     add_new_builtin('==', equals_builtin)
     add_new_builtin('+', plus_builtin)
+    add_new_builtin('range', range_builtin)
     add_new_builtin('load', load_builtin)
 
     add_new_builtin('undefine', undefine_builtin, 'lazy')
@@ -452,20 +466,6 @@ def expand(tree, bindings):
     elif type(tree) == dict:
         newdict = {}
 
-        if 'range' in tree.keys():
-            statement = tree['range']
-            if len(tree.keys()) != 1:
-                    raise(YampException('Syntax error too many keys in {}'.format(tree)))
-            if type(statement) != list:
-                    raise(YampException('Syntax error was expecting list in {}'.format(tree)))
-            if len(statement) < 2:
-                    raise(YampException('Syntax error was expecting list(2) in {}'.format(tree)))
-            start = str(expand(statement[0], bindings)) # TODO
-            end = str(expand(statement[1], bindings))
-            for item in [start, end]:
-                if not item.isdigit():
-                    raise(YampException('Syntax error was expecting integer range in {}, got {}'.format(tree, item)))
-            return list(range(int(start), int(end)+1))
 
         if 'python' in tree.keys():
             return expand_python(tree, bindings)
