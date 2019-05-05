@@ -344,6 +344,27 @@ Declarations don't need the 'name' and 'value' keys, and multiple variables are 
     height: 123
 ----
 
+==== Refactoring Yamp with `undefine`
+
+Sometimes a variable needs to be renamed or removed. For example if a Yamp macro name conflicts with a name used in the
+output format required. The `undefine` macro removes a variable binding from the current environment. Usage:
+
+[source,YAML]
+----
+undefine: variablename
+----
+
+Used at the top level
+(outside of a macro) `undefine` can be used to change the definitions of Yamp built-in macros themselves. This is done by first assigning a new name with the currently used macro, then undefining the original name. If this is done before any files are included, it can be used to redefine Yamp syntax. For example we can use `plus` instead of the `+` symbol as follows
+
+
+[source,YAML]
+----
+- define: 
+    plus: +
+- undefine: +
+- {plus: [1,2,3]}
+----
 
 ==== Macros
 
