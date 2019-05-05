@@ -82,7 +82,7 @@ def new_macro(tree, bindings):
     body = tree['value']
     parameters = tree['args'] or []
     macro_type = tree.get('macro_type', 'eager')
-    def apply(syntax, args, dynamic_bindings):
+    def apply(seen_tree, args, dynamic_bindings):
         """
         Given a map of arguments, create a new local environment for this macro expansion, bind the args to the new
         enviroment, then expand the captured body and return the result. If the captured parameters variable is a string, it is
@@ -98,8 +98,10 @@ def new_macro(tree, bindings):
             if set(parameters or []) != set(args.keys()):
                 raise(YampException('Argument mismatch in {} expected {} got {}'.format(name, parameters, args)))
         if type(body) == type(expand): # Is this a built-in python function?
-            return body(syntax, args, dynamic_bindings)
+            return body(seen_tree, args, dynamic_bindings)
         else:
+            if len(seen_tree.keys()) != 1:
+                raise(YampException('ERROR: too many keys in macro call "{}"'.format(seen_tree)))
             macro_env = {'__parent__': bindings}
             if type(parameters) == str: # varargs
                 macro_env[parameters] = args
@@ -414,6 +416,22 @@ def undefine_builtin(tree, args, bindings):
         del bindings[args]
     return None
 
+def if_builtin(tree, args, bindings):
+    if 'else' not in tree.keys() and 'then' not in tree.keys():
+        raise(YampException('Syntax error "then" or "else" missing in {}'.format(tree)))
+    if set(tree.keys()) - set(['if', 'then', 'else']):
+        raise(YampException('Syntax error extra keys in {}'.format(tree)))
+    condition = expand(tree['if'], bindings)
+    if condition not in [True, False, None]:
+        raise(YampException('If condition not "true", "false" or "null". Got: "{}" in {}'.format(condition, tree)))
+    if condition == True and 'then' in tree.keys():
+        expanded = expand(tree['then'], bindings)
+        return expand(expanded, bindings)
+    elif (condition == False or condition == None) and 'else' in tree.keys():
+        expanded = expand(tree['else'], bindings)
+        return expand(expanded, bindings)
+    return None
+
 def quote_builtin(tree, args, bindings):
     if len(tree.keys()) != 1:
             raise(YampException('Syntax error too many keys in {}'.format(tree)))
@@ -435,8 +453,9 @@ def add_builtins_to_env(env):
     add_new_builtin('load', load_builtin)
 
     add_new_builtin('undefine', undefine_builtin, 'lazy')
-    add_new_builtin('python', python_builtin, 'quote')
+    add_new_builtin('if', if_builtin, 'lazy')
 
+    add_new_builtin('python', python_builtin, 'quote')
     add_new_builtin('quote', quote_builtin, 'quote')
     
     return env
@@ -472,21 +491,6 @@ def expand(tree, bindings):
         newdict = {}
 
 
-        if 'if' in tree.keys():
-            if 'else' not in tree.keys() and 'then' not in tree.keys():
-                raise(YampException('Syntax error "then" or "else" missing in {}'.format(tree)))
-            if set(tree.keys()) - set(['if', 'then', 'else']):
-                raise(YampException('Syntax error extra keys in {}'.format(tree)))
-            condition = expand(tree['if'], bindings)
-            if condition not in [True, False, None]:
-                raise(YampException('If condition not "true", "false" or "null". Got: "{}" in {}'.format(condition, tree)))
-            if condition == True and 'then' in tree.keys():
-                expanded = expand(tree['then'], bindings)
-                return expand(expanded, bindings)
-            elif (condition == False or condition == None) and 'else' in tree.keys():
-                expanded = expand(tree['else'], bindings)
-                return expand(expanded, bindings)
-            return None
 
         if 'define' in tree.keys():
             if len(tree.keys()) != 1:
@@ -527,8 +531,6 @@ def expand(tree, bindings):
         for k,v in tree.iteritems():
             func = expand(k, bindings)
             if type(func) == tuple:
-                if len(tree.keys()) != 1:
-                    raise(YampException('ERROR: too many keys in macro call "{}" {}'.format(k, tree.keys())))
                 if func[0] == 'eager':
                     return(expand(func[1](tree, expand(v, bindings), bindings), bindings))
                 elif func[0] == 'lazy':
