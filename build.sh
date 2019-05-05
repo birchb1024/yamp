@@ -11,9 +11,11 @@
 set -u
 set -e
 
+tag=$(git describe --tag)
+
 python test/test_expand_01.py
 asciidoc README.asciidoc && mv README.html doc
-docker build -t docker.io/birchb1024/yamp .
+docker build -t "docker.io/birchb1024/yamp:${tag}" .
 
-echo "Now 'docker push docker.io/birchb1024/yamp'"
+printf "Now \'docker push docker.io/birchb1024/yamp:${tag}\'\n"
 
