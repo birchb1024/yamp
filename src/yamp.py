@@ -421,6 +421,20 @@ def python_builtin(tree, args, bindings):
 def repeat_builtin(tree, args, bindings):
     return expand_repeat(tree, bindings)
 
+
+def define_builtin(tree, args, bindings):
+    if len(tree.keys()) != 1:
+            raise(YampException('Syntax error too many keys in {}'.format(tree)))
+    if 'name' not in args and 'value' not in args:
+        return map_define(args, bindings)
+    for required in ['name', 'value']:
+        if required not in args:
+            raise(YampException('Syntax error "{}" missing in {}'.format(required, tree)))
+    if type(args['name']) != str:
+        raise(YampException('Syntax error "{}" not a string in {}'.format(args['name'], tree)))
+    bindings[args['name']] = expand(args['value'], bindings)
+    return None
+
 def undefine_builtin(tree, args, bindings):
     if len(tree.keys()) != 1:
             raise(YampException('Syntax error too many keys in {}'.format(tree)))
@@ -467,6 +481,7 @@ def add_builtins_to_env(env):
     add_new_builtin('include', include_builtin)
     add_new_builtin('load', load_builtin)
 
+    add_new_builtin('define', define_builtin, 'lazy')
     add_new_builtin('undefine', undefine_builtin, 'lazy')
     add_new_builtin('if', if_builtin, 'lazy')
     add_new_builtin('repeat', repeat_builtin, 'lazy')
@@ -507,19 +522,6 @@ def expand(tree, bindings):
         newdict = {}
 
 
-
-        if 'define' in tree.keys():
-            if len(tree.keys()) != 1:
-                    raise(YampException('Syntax error too many keys in {}'.format(tree)))
-            if 'name' not in tree['define'] and 'value' not in tree['define']:
-                return map_define(tree['define'], bindings)
-            for required in ['name', 'value']:
-                if required not in tree['define']:
-                    raise(YampException('Syntax error "{}" missing in {}'.format(required, tree)))
-            if type(tree['define']['name']) != str:
-                raise(YampException('Syntax error "{}" not a string in {}'.format(tree['define']['name'], tree)))
-            bindings[tree['define']['name']] = expand(tree['define']['value'], bindings)
-            return None
 
         if 'defmacro' in tree.keys():
             if not tree['defmacro']:
