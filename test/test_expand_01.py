@@ -53,6 +53,14 @@ class TestYamp(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             self.assertEqual([99], expand([{'define': {'name': 123, 'value': 23}}, 123], {}))
 
+    def testUnDefine(self):
+        self.assertEqual(expand([
+            {'define': {'name': 'v1', 'value': 11}},
+            'v1',
+            {'undefine':'v1'},
+             'v1'], {}), 
+        [11,'v1'])
+
     def testMultiDefine(self):
         self.assertEqual(expand([{'define': {'name': 'v1', 'value': 11}},
             {'define': {'v2': 12}},'v1', 'v2'], {}), [11,12])

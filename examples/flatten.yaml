@@ -1,3 +1,4 @@
+file_header:
 ---
 # flatten lists
 - define: {home-directories: [/home/elvis, /home/madonna]}
@@ -27,15 +28,5 @@ merge:
   - mymacro:
       arg1: tetris
   - network-data
----
-define: 
-  deeplist:  [[[6,7]]]
-  renamed: flatone
-define: 
-  name: 'flatone'
-  value:  'flatone'
----
-- renamed: [1, 2, [3], [[4, 5]],  deeplist]
-- [flatone, 'not a macro any more']
 
 

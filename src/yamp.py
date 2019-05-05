@@ -81,6 +81,7 @@ def new_macro(tree, bindings):
     name = tree['name']
     body = tree['value']
     parameters = tree['args'] or []
+    macro_type = tree.get('macro_type', 'eager')
     def apply(syntax, args, dynamic_bindings):
         """
         Given a map of arguments, create a new local environment for this macro expansion, bind the args to the new
@@ -106,7 +107,7 @@ def new_macro(tree, bindings):
                 if args: # Might be None for no args
                     macro_env.update(args)
             return expand(body, macro_env)
-    return apply
+    return (macro_type, apply)
 
 
 def subvar_lookup(original, vars_list, tree, bindings):
@@ -452,11 +453,14 @@ def expand(tree, bindings):
             return None
 
         for k,v in tree.iteritems():
-            new_k = expand(k, bindings)
-            if type(new_k) == type(expand):
+            func = expand(k, bindings)
+            if type(func) == tuple:
                 if len(tree.keys()) != 1:
                     raise(YampException('ERROR: too many keys in macro call "{}" {}'.format(k, tree.keys())))
-                return(expand(new_k(tree, expand(v, bindings), bindings), bindings))
+                if func[0] == 'eager':
+                    return(expand(func[1](tree, expand(v, bindings), bindings), bindings))
+                else:
+                    return(expand(func[1](tree, v, bindings), bindings))
             interp_k = interpolate(k, bindings)
             if interp_k != k:
                 # string containing {{ }} - only these keys are expanded
@@ -619,6 +623,15 @@ def load_builtin(tree, args, bindings):
             raise(YampException('Syntax error was expecting string in {}'.format(tree)))
     return expand_file(args, bindings, expandafterload=False)
 
+def undefine_builtin(tree, args, bindings):
+    if len(tree.keys()) != 1:
+            raise(YampException('Syntax error too many keys in {}'.format(tree)))
+    if type(args) != str:
+            raise(YampException('Syntax error was expecting string in {} got {}'.format(tree, args)))
+    if args in bindings:
+        del bindings[args]
+    return None
+
 def new_globals():
 
     global_environment = {'__FILE__': None, 'argv' : sys.argv, 'env': os.environ.copy()}
@@ -629,13 +642,14 @@ def add_builtins_to_env(env):
     """
     Utility function to add all the builtins to an environment
     """
-    def add_new_builtin(name, fn):
-        env[name] = new_macro({'name': name, 'args': 'varargs', 'value': fn},  env) 
+    def add_new_builtin(name, fn, func_type='eager'):
+        env[name] = new_macro({'name': name, 'args': 'varargs', 'value': fn, 'macro_type': func_type},  env) 
 
     add_new_builtin('flatone', flatone_builtin)
     add_new_builtin('==', equals_builtin)
     add_new_builtin('+', plus_builtin)
     add_new_builtin('load', load_builtin)
+    add_new_builtin('undefine', undefine_builtin, 'lazy')
     
     return env
 

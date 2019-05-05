@@ -40,3 +40,5 @@ include:
   - ../examples/replace.yaml
   - ../examples/template01.gocd.yaml
   - ../examples/varargs.yaml
+  - ../examples/flatten.yaml
+  - ../examples/undefine.yaml
