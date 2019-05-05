@@ -444,6 +444,15 @@ def undefine_builtin(tree, args, bindings):
         del bindings[args]
     return None
 
+def defmacro_builtin(tree, args, bindings):
+    if not args:
+        raise(YampException('Syntax error empty defmacro {}'.format(tree)))
+    for required in ['name', 'args', 'value']:
+        if required not in args:
+            raise(YampException('Syntax error {} missing in {}'.format(required, tree)))
+    bindings[args['name']] = new_macro(args, bindings)
+    return None
+
 def if_builtin(tree, args, bindings):
     if 'else' not in tree.keys() and 'then' not in tree.keys():
         raise(YampException('Syntax error "then" or "else" missing in {}'.format(tree)))
@@ -483,6 +492,7 @@ def add_builtins_to_env(env):
 
     add_new_builtin('define', define_builtin, 'lazy')
     add_new_builtin('undefine', undefine_builtin, 'lazy')
+    add_new_builtin('defmacro', defmacro_builtin, 'lazy')
     add_new_builtin('if', if_builtin, 'lazy')
     add_new_builtin('repeat', repeat_builtin, 'lazy')
 
@@ -520,17 +530,6 @@ def expand(tree, bindings):
         return newlist
     elif type(tree) == dict:
         newdict = {}
-
-
-
-        if 'defmacro' in tree.keys():
-            if not tree['defmacro']:
-                raise(YampException('Syntax error empty defmacro {}'.format(tree)))
-            for required in ['name', 'args', 'value']:
-                if required not in tree['defmacro']:
-                    raise(YampException('Syntax error {} missing in {}'.format(required, tree)))
-            bindings[tree['defmacro']['name']] = new_macro(tree['defmacro'], bindings)
-            return None
 
         for k,v in tree.iteritems():
             func = expand(k, bindings)
