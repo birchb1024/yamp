@@ -15,7 +15,6 @@ import numbers
 import datetime
 from yaml import load, Loader, dump, load_all
 
-
 class YampException(Exception):
     pass
 
@@ -51,7 +50,9 @@ def lookup(env, key):
     Search an environment stack for a binding of key to a value, 
     following __parent__ links to higher environment. 
     If nothing, return None. 
-    # TODO Make this part of a dict-like class.
+    :param env: Start seaching from this env
+    :param key: variable name to look for.
+    :return: Value if found otherwise None
     """
     while True:
         if key in env:
@@ -75,7 +76,7 @@ def new_macro(tree, bindings):
     If 'args' is None no arguments are bound, but if actual arguments are provided the returned function raises an error.
     :param tree: {'name': <string>, 'args': None|<list of strings>|<string>, 'value': <anything>}
     :param bindings: environment to update
-    :return: A new function to apply when the macro is called
+    :return: A tuple containing a type tag in [0] and in [1] a new function to apply when the macro is called
     """
     name = tree['name']
     body = tree['value']
@@ -86,7 +87,9 @@ def new_macro(tree, bindings):
         Given a map of arguments, create a new local environment for this macro expansion, bind the args to the new
         enviroment, then expand the captured body and return the result. If the captured parameters variable is a string, it is
         used for variable arguments which are all bound to it.
-        :param args:
+        :param seen_tree: Tree as parsed
+        :param args: 
+        :param dynamic_bindings: bindings for builtins 
         :return:
         """
         if type(parameters) == list and args and type(args) != dict:
@@ -181,20 +184,7 @@ def expand_str(variable_name, bindings):
     else:
         return variable_name
 
-def expand_repeat(tree, bindings):
-    """
-    Expand a repeat macro, this function selects the appropriate expander for lists and maps.
-    If the repeat has the 'key' key, then execute as for maps, else lists.
-    :param tree: The repeat form such as {repeat: {for: X, in: [1,2], key: 'Foo {{X}}', body: [stuff, X]}
-    :param bindings:
-    :return: The Expanse
-    """
-    if 'key' in tree['repeat']:
-        return expand_repeat_dict(tree, bindings)
-    else:
-        return expand_repeat_list(tree, bindings)
-
-def expand_repeat_dict(tree, bindings):
+def expand_repeat_dict(tree, statement, bindings):
     """
     Expand a repeat loop and return a map, with a parameteriseed key. Create a local environment for the
     expansion, bind the for variable name to the iteration value each time round.
@@ -202,10 +192,6 @@ def expand_repeat_dict(tree, bindings):
     :param bindings:
     :return: The Expanse
     """
-    statement = tree['repeat']
-    parameters = ['for', 'in', 'body', 'key']
-    if set(parameters) != set(statement.keys()):
-        raise(YampException('Argument mismatch in {} \n\texpected {} got {}'.format(tree, parameters, statement.keys())))
     rang = expand(expand(statement['in'], bindings), bindings)
     var = statement['for']
     body = statement['body']
@@ -226,7 +212,7 @@ def expand_repeat_dict(tree, bindings):
         result[keyvalue] = expand(expand(body, loop_binding), loop_binding)
     return result
 
-def expand_repeat_list(tree, bindings):
+def expand_repeat_list(tree, statement, bindings):
     """
     Expand a repeat loop and return a list one item each time. Create a local environment for the
     expansion, bind the for variable name to the iteration value each time round.
@@ -234,10 +220,6 @@ def expand_repeat_list(tree, bindings):
     :param bindings:
     :return: The Expanse
     """
-    statement = tree['repeat']
-    parameters = ['for', 'in', 'body']
-    if set(parameters) != set(statement.keys()):
-        raise(YampException('Argument mismatch in {} \n\texpected {} got {}'.format(tree, parameters, statement.keys())))
     rang = expand(expand(statement['in'], bindings), bindings)
     var = statement['for']
     body = statement['body']
@@ -251,21 +233,6 @@ def expand_repeat_list(tree, bindings):
         loop_binding[var] = item
         result.append(expand(body, loop_binding))
     return result
-
-def expand_python(tree, bindings):
-    """
-    Expand a tree of the form {python: 'some expression'} by executing Python eval() withthe current bindings
-    used as the Python local variables.
-    :param tree: the form {python: 'some expression'}
-    :param bindings:
-    :return: Expanse
-    """
-    statement = tree['python']
-    if type(statement) != str:
-        raise(YampException('Syntax error not string in {}'.format(tree)))
-    if len(tree.keys()) != 1:
-            raise(YampException('Syntax error too many keys in {}'.format(tree)))
-    return eval('(' + statement + ')', globals(), bindings)
 
 def map_define(arglist, bindings):
     """
@@ -334,13 +301,61 @@ def merge_maps(mappy, bindings):
                 result[k] = v
     return result
 
-def equals_builtin(tree, args, bindings):
+def validate_single(tree):
+    """
+    Raise an exception if there are not a single key in tree.
+    :return: None
+    """
     if len(tree.keys()) != 1:
             raise(YampException('Syntax error too many keys in {}'.format(tree)))
-    if type(args) != list:
-            raise(YampException('Syntax error was expecting list in {}'.format(tree)))
-    if len(args) < 2:
-            raise(YampException('Syntax error was expecting list(2) in {}'.format(tree)))
+
+def validate_params(tree, tree_proto, args, args_proto):
+    """
+    Given a protype for a form and arguments, raise execptions if they dont match.
+    Checks: 
+        - the number of keys in the tree,
+        - the type of the args
+        - the number of agrs if a list
+    
+    e.g. validate_params({'a': None}, {'a': None}, [1], [1]) is OK
+    :return: None
+    """
+    if len(tree.keys()) != len(tree_proto):
+            raise(YampException('Syntax error incorrect number of keys in {}'.format(tree)))
+    if type(args) != type(args_proto):
+            raise(YampException('Syntax error incorrect argument type. Expected {} in {}'.format(type(args_proto), tree)))
+    if type(args) in [list, dict]:         # Is it something with a length?
+        if len(args) < len(args_proto):
+                raise(YampException('Syntax error too few arguments. Expected {} in {}'.format(len(args_proto), tree)))
+
+def validate_keys(specification, amap):
+    """
+    Raise an exception if the keys in the specification are not present in the args, or if there are
+    additional keys not in the spec. Optional keys are wrapped in a tuple.
+    Example:
+       ['for', 'in', ('step')]
+    """
+    extras = set(amap.keys())
+    for key in specification:
+      if type(key) == str:
+        if not key in amap:
+           raise(YampException('Syntax error missing argument {} in {}'.format(key, amap)))
+        extras.discard(key)
+      elif type(key) == tuple:
+         optional = key[0]
+         if type(optional) != str:
+            raise(YampException('Invalid spec {}'.format(specification)))
+         extras.discard(optional)
+      else:
+          raise(YampException('Invalid {} spec {}'.format(type(key), specification)))      
+    if len(extras) > 0:
+        raise(YampException('Unexpected keys {} in {}'.format(extras, amap)))
+
+def equals_builtin(tree, args, bindings):
+    """
+    :return: True or False depending if args are the same. 
+    """
+    validate_params(tree, {'': None}, args, [1, 2])
     expect = args[0]
     for item in args:
         if item != expect:
@@ -348,12 +363,10 @@ def equals_builtin(tree, args, bindings):
     return True
 
 def plus_builtin(tree, args, bindings):
-    if len(tree.keys()) != 1:
-            raise(YampException('Syntax error too many keys in {}'.format(tree)))
-    if type(args) != list:
-            raise(YampException('Syntax error was expecting list in {}'.format(tree)))
-    if len(args) < 2:
-            raise(YampException('Syntax error was expecting list(2) in {}'.format(tree)))
+    """
+    :return: the sum of the arguments.
+    """
+    validate_params(tree, {'': None}, args, [1, 2])
     sum = 0
     for item in args:
         if not isinstance(item, numbers.Number):
@@ -362,12 +375,10 @@ def plus_builtin(tree, args, bindings):
     return sum
 
 def range_builtin(tree, statement, bindings):
-    if len(tree.keys()) != 1:
-            raise(YampException('Syntax error too many keys in {}'.format(tree)))
-    if type(statement) != list:
-            raise(YampException('Syntax error was expecting list in {}'.format(tree)))
-    if len(statement) < 2:
-            raise(YampException('Syntax error was expecting list(2) in {}'.format(tree)))
+    """
+    :return: a list from  statement[0] to statement[1]
+    """
+    validate_params(tree, {'range': None}, statement, [1,2])
     start = str(expand(statement[0], bindings))
     end = str(expand(statement[1], bindings))
     for item in [start, end]:
@@ -376,31 +387,32 @@ def range_builtin(tree, statement, bindings):
     return list(range(int(start), int(end)+1))
 
 def flatten_builtin(tree, args, bindings):
-    if len(tree.keys()) != 1:
-            raise(YampException('Syntax error too many keys in {}'.format(tree)))
-    if type(args) != list:
-            raise(YampException('Syntax error was expecting list in {}'.format(tree)))
+    """
+    See flatten_list
+    """
+    validate_params(tree, {'': None}, args, [])
     return flatten_list(args, bindings)
 
 def flatone_builtin(tree, args, bindings):
-    if len(tree.keys()) != 1:
-            raise(YampException('Syntax error too many keys in {}'.format(tree)))
-    if type(args) != list:
-            raise(YampException('Syntax error was expecting list in {} got {}'.format(tree, args)))
+    """
+    See flat_list
+    """
+    validate_params(tree, {'': None}, args, [])
     return flat_list(1, args)
 
 def merge_builtin(tree, args, bindings):
-    if len(tree.keys()) != 1:
-            raise(YampException('Syntax error too many keys in {}'.format(tree)))
-    if type(args) != list:
-            raise(YampException('Syntax error was expecting list in {}'.format(tree)))
+    """
+    See merge_maps
+    """
+    validate_params(tree, {'': None}, args, [])
     return merge_maps(args, bindings)
 
 def include_builtin(tree, args, bindings):
-    if len(tree.keys()) != 1:
-            raise(YampException('Syntax error too many keys in {}'.format(tree)))
-    if type(args) != list:
-            raise(YampException('Syntax error was expecting list in {}'.format(tree)))
+    """
+    Sequentially expand a list of YAML files in the current environment.
+    return: None
+    """
+    validate_params(tree, {'': None}, args, [])
     for filename in args:
         if type(filename) != str:
             raise(YampException('Syntax error was list of string in {}'.format(tree)))
@@ -408,35 +420,60 @@ def include_builtin(tree, args, bindings):
     return None
 
 def load_builtin(tree, args, bindings):
-    if len(tree.keys()) != 1:
-            raise(YampException('Syntax error too many keys in {}'.format(tree)))
-    if type(args) != str:
-            raise(YampException('Syntax error was expecting string in {}'.format(tree)))
+    """
+    Read a file of data, no macro expansions.
+    :return: the data as read
+    """
+    validate_params(tree, {'': None}, args, '')
     return expand_file(args, bindings, expandafterload=False)
 
 def python_builtin(tree, args, bindings):
-    return expand_python(tree, bindings)
+    """
+    Expand a tree of the form {python: 'some expression'} by executing Python eval() with the current bindings
+    used as the Python local variables.
+    :param tree: the original source form {python: 'some expression'}
+    :param args: The actual arguments
+    :param bindings:
+    :return: Expanse
+    """
+    validate_params(tree, {'': None}, args, '')
+    return eval('(' + args + ')', globals(), bindings)
 
 def repeat_builtin(tree, args, bindings):
-    return expand_repeat(tree, bindings)
-
+    """
+    Expand a repeat macro, this function selects the appropriate expander for lists and maps.
+    If the repeat has the 'key' key, then execute as for maps, else lists.
+    :param tree: The repeat form such as {repeat: {for: X, in: [1,2], key: 'Foo {{X}}', body: [stuff, X]}
+    :param bindings:
+    :return: The Expanse
+    """
+    validate_keys(['for', 'in', 'body', ('key',)], args)
+    
+    if 'key' in tree['repeat']:
+        return expand_repeat_dict(tree, args, bindings)
+    else:
+        return expand_repeat_list(tree, args, bindings)
 
 def define_builtin(tree, args, bindings):
-    if len(tree.keys()) != 1:
-            raise(YampException('Syntax error too many keys in {}'.format(tree)))
+    """
+    Define one or more variables in the current scope.
+    :return: None
+    """
+    validate_single(tree)
     if 'name' not in args and 'value' not in args:
         return map_define(args, bindings)
-    for required in ['name', 'value']:
-        if required not in args:
-            raise(YampException('Syntax error "{}" missing in {}'.format(required, tree)))
+    validate_keys(['name', 'value'], args)
     if type(args['name']) != str:
         raise(YampException('Syntax error "{}" not a string in {}'.format(args['name'], tree)))
     bindings[args['name']] = expand(args['value'], bindings)
     return None
 
 def undefine_builtin(tree, args, bindings):
-    if len(tree.keys()) != 1:
-            raise(YampException('Syntax error too many keys in {}'.format(tree)))
+    """
+    Remove binding in the current environment only.
+    :return: None
+    """
+    validate_single(tree)
     if type(args) != str:
             raise(YampException('Syntax error was expecting string in {} got {}'.format(tree, args)))
     if args in bindings:
@@ -444,19 +481,26 @@ def undefine_builtin(tree, args, bindings):
     return None
 
 def defmacro_builtin(tree, args, bindings):
+    """
+    Define a new macro. 
+    :return: None
+    """
     if not args:
         raise(YampException('Syntax error empty defmacro {}'.format(tree)))
-    for required in ['name', 'args', 'value']:
-        if required not in args:
-            raise(YampException('Syntax error {} missing in {}'.format(required, tree)))
+    validate_keys(['name', 'args', 'value'], args)
     bindings[args['name']] = new_macro(args, bindings)
     return None
 
 def if_builtin(tree, args, bindings):
+    """
+    Conditional expression
+    :return: either the expansion of the 'then' or 'else' elements. 
+    """
     if 'else' not in tree.keys() and 'then' not in tree.keys():
         raise(YampException('Syntax error "then" or "else" missing in {}'.format(tree)))
-    if set(tree.keys()) - set(['if', 'then', 'else']):
-        raise(YampException('Syntax error extra keys in {}'.format(tree)))
+    extras = set(tree.keys()) - set(['if', 'then', 'else'])
+    if extras:
+        raise(YampException('Syntax error extra keys {} in {}'.format(extras, tree)))
     condition = expand(tree['if'], bindings)
     if condition not in [True, False, None]:
         raise(YampException('If condition not "true", "false" or "null". Got: "{}" in {}'.format(condition, tree)))
@@ -469,13 +513,17 @@ def if_builtin(tree, args, bindings):
     return None
 
 def quote_builtin(tree, args, bindings):
-    if len(tree.keys()) != 1:
-            raise(YampException('Syntax error too many keys in {}'.format(tree)))
+    """
+    :return: the args without expansion
+    """
+    validate_single(tree)
     return args
 
 def add_builtins_to_env(env):
     """
     Utility function to add all the builtins to an environment
+    :env: Environment to add to
+    :return: The environment
     """
     def add_new_builtin(name, fn, func_type='eager'):
         env[name] = new_macro({'name': name, 'args': 'varargs', 'value': fn, 'macro_type': func_type},  env) 
@@ -488,13 +536,11 @@ def add_builtins_to_env(env):
     add_new_builtin('range', range_builtin)
     add_new_builtin('include', include_builtin)
     add_new_builtin('load', load_builtin)
-
     add_new_builtin('define', define_builtin, 'lazy')
     add_new_builtin('undefine', undefine_builtin, 'lazy')
     add_new_builtin('defmacro', defmacro_builtin, 'lazy')
     add_new_builtin('if', if_builtin, 'lazy')
     add_new_builtin('repeat', repeat_builtin, 'lazy')
-
     add_new_builtin('python', python_builtin, 'quote')
     add_new_builtin('quote', quote_builtin, 'quote')
     
@@ -661,7 +707,10 @@ def expand_file(filename, bindings, expandafterload=True, outputfile=None):
 
 
 def new_globals():
-
+    """
+    Construct a new Yamp environment of globals.
+    :return: New global dict
+    """
     global_environment = {'__FILE__': None, 'argv' : sys.argv, 'env': os.environ.copy()}
     add_builtins_to_env(global_environment)    
     return global_environment

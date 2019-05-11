@@ -612,6 +612,61 @@ class TestYamp(unittest.TestCase):
             merge_maps([12,{'a':1, 'c':99},{'b':2},{'c':3}],{})
         self.assertTrue('Error: non-map' in context.exception.message)
 
+    def try_validate_error(self, message, tree, tree_proto, args, args_proto):
+        with self.assertRaises(Exception) as context:
+            validate_params(tree, tree_proto, args, args_proto)
+        success = message in context.exception.message
+        if not success: print context.exception.message
+        self.assertTrue(success)
+        
+    def testValidateParamsKeys(self):
+        self.try_validate_error('Syntax error incorrect number of keys', {}, {'a': None}, [], [])
+        self.try_validate_error('Syntax error incorrect number of keys', {'a':None, 'b': None}, {'a': None}, [], [])
+        self.try_validate_error('Syntax error incorrect number of keys', {'a':None, 'b': None, 'c': None}, {'a': None}, [], [])
+        validate_params({'a': None}, {'a': None}, [1,2,3], [1,2,3])
+    
+    def testValidateParamsLists(self):
+        validate_params({'a': None}, {'a': None}, [1], [1])
+        validate_params({'a': None}, {'a': None}, [1,2], [1,2])
+        validate_params({'a': None}, {'a': None}, [1,2,3], [1,2,3])
+        self.try_validate_error('too few arguments', {'a': None}, {'a': None}, [], [1])
+        self.try_validate_error('error too few arguments', {'a': None}, {'a': None}, [1], [1,2])
+        self.try_validate_error('error too few arguments', {'a': None}, {'a': None}, [1,2], [1,2,3])
+
+    def testValidateParamsTypes(self):
+        validate_params({'a': None}, {'a': None}, [1], [1])
+        validate_params({'a': None}, {'a': None}, {'': None}, {'' : None})
+        validate_params({'a': None}, {'a': None}, '', '')
+        validate_params({'a': None}, {'a': None}, 1, 1)
+        validate_params({'a': None}, {'a': None}, 1.2, 1.2)
+        validate_params({'a': None}, {'a': None}, True, True)
+        validate_params({'a': None}, {'a': None}, False, True)
+        self.try_validate_error('incorrect argument type', {'': None}, {'': None}, [], 1)
+        self.try_validate_error('incorrect argument type', {'': None}, {'': None}, {'' : None}, [1])
+        self.try_validate_error('incorrect argument type', {'': None}, {'': None}, 12, 12.3)
+
+    def try_validate_keys_error(self, message, spec, form):
+        with self.assertRaises(Exception) as context:
+            validate_keys(spec, form)
+        success = message in context.exception.message
+        if not success: print context.exception.message
+        self.assertTrue(success)
+
+    def testValidateKeys(self):
+        validate_keys([], {})
+        validate_keys(['a', 'b'], {'a': None, 'b': None})
+        validate_keys(['a', ('b',)], {'a': None, 'b': None})
+        validate_keys(['a', ('b',)], {'a': None})
+        validate_keys([('a',), ('b',)], {'a': None})
+        validate_keys([('a',), ('b',)], {})
+
+        self.try_validate_keys_error("missing argument", ['a'], {})
+        self.try_validate_keys_error("Unexpected", ['a'], {'a': None, 'b': None})
+        self.try_validate_keys_error("Unexpected", [('a',)], {'a': None, 'b': None})
+        self.try_validate_keys_error("Unexpected", [('a',)], {'b': None})
+
+
+
     def runFileRegression(self, file_to_test, fixture):
         tempout = tempfile.mkstemp()
         outputfilestream = open(tempout[1], 'w+')
