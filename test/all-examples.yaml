@@ -12,7 +12,7 @@ defmacro:
   name: file_header
   args:
   value: 
-    - define: { basename: {python: 'os.path.basename(lookup(__parent__, "__FILE__")[0])'}}
+    - define: { basename: {python_eval: 'os.path.basename(lookup(__parent__, "__FILE__")[0])'}}
     - '*************** File: {{basename}} *****************'
 ---
 include:

@@ -540,8 +540,8 @@ class TestYamp(unittest.TestCase):
 
     def testPython(self):
         bindings = {'A': 1, 'B' : 2}
-        self.assertEquals([1, 2], expand({'python': '[A, B]'}, bindings))
-        self.assertEquals(3, expand({'python': 'B + A'}, bindings))
+        self.assertEquals([1, 2], expand({'python_eval': '[A, B]'}, bindings))
+        self.assertEquals(3, expand({'python_eval': 'B + A'}, bindings))
 
     def testInclude(self):
         global_environment = {

@@ -41,7 +41,7 @@ pipelines:
 - AXA
 # Produces AChristopherA
 ---
-- {python: ' 2**10 '}
+- {python_eval: ' 2**10 '}
 ---
 - define: {name: age, value: 32}
 - age
@@ -132,12 +132,12 @@ repeat:
 - ==: [1,1,1]
 ---
 - define: {FOO: 2}
-- python: ' FOO**10 '
+- python_eval: ' FOO**10 '
 ---
-#- python: 'len(argv)'
-#- python: 'env["USERNAME"].upper()'
-#- python: 'datetime.datetime.now()'
-# - python: 'iter(_ for _ in ()).throw(Exception("{} This is how to raise an exception!".format(env["USERNAME"])))'
+#- python_eval: 'len(argv)'
+#- python_eval: 'env["USERNAME"].upper()'
+#- python_eval: 'datetime.datetime.now()'
+# - python_eval: 'iter(_ for _ in ()).throw(Exception("{} This is how to raise an exception!".format(env["USERNAME"])))'
 ---
 range: [3 , 5]
 ---

@@ -42,7 +42,7 @@ listy:
     value:
        repeat:
          for: item
-         in: {python: all.items()}
+         in: {python_eval: all.items()}
          body:
            env: item.0
            host: item.1.host

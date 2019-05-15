@@ -541,7 +541,7 @@ def add_builtins_to_env(env):
     add_new_builtin('defmacro', defmacro_builtin, 'lazy')
     add_new_builtin('if', if_builtin, 'lazy')
     add_new_builtin('repeat', repeat_builtin, 'lazy')
-    add_new_builtin('python', python_builtin, 'quote')
+    add_new_builtin('python_eval', python_builtin, 'quote')
     add_new_builtin('quote', quote_builtin, 'quote')
     
     return env

@@ -7,7 +7,7 @@ file_header:
       if:
         ==: [p1, p2]
       else:
-        python: 'iter(_ for _ in ()).throw(Exception("ASSERT FAILED {} != {}".format(p1,p2)))'
+        python_eval: 'iter(_ for _ in ()).throw(Exception("ASSERT FAILED {} != {}".format(p1,p2)))'
 ---
 - assert_equal:
     p1: 12
@@ -18,7 +18,7 @@ file_header:
     args: [that]
     value:
       if: that
-      else: { python: 'iter(_ for _ in ()).throw(Exception("ASSERT FAILED {}".format(that)))' }
+      else: { python_eval: 'iter(_ for _ in ()).throw(Exception("ASSERT FAILED {}".format(that)))' }
 ---
 assert: {that: true}
 assert: {that: false}
