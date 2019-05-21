@@ -654,8 +654,8 @@ def expand_file(filename, bindings, expandafterload=True, outputfile=None):
                    outputfile.write(dump(output_doc, default_flow_style=False))
             else:
                 return [tree for tree in doc_gen]
-        except YampException as e:
-            print("ERROR: {}\n{}\n".format(path, e), file=sys.stderr)
+        except Exception as e:
+            print("ERROR: {}\n{}\n{}\n".format(path, type(e), e), file=sys.stderr)
             sys.exit(1)
 
     def expand_json():
