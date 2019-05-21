@@ -1,0 +1,8 @@
+- defmacro:
+    name: my-macro
+    args: [ param ]
+    value:
+      ^param:
+        LtUaE : param
+---
+- my-macro: { param: 42 }

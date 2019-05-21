@@ -15,7 +15,7 @@ repeat:
   for: loop_variable
   in: {range: [1,3]}
   body:
-    loop_variable: 'KEY_{{loop_variable}}'
+    ^loop_variable: 'KEY_{{loop_variable}}'
     some: step
     another_item:
 ---

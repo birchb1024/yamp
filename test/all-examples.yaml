@@ -40,3 +40,4 @@ include:
   - ../examples/template01.gocd.yaml
   - ../examples/undefine.yaml
   - ../examples/varargs.yaml
+  - ../examples/caret.yaml

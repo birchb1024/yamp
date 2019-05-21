@@ -2,6 +2,7 @@
 Peter Birch <birchb1024@gmail.com>
 v0.2, 2019-05-04
 :toc: macro
+:toclevels: 4
 YAML is human friendly data serialization standard. footnote:[YAML stands for YAML Ain't Markup Language. See https://yaml.org/]  Yamp is a general-purpose macroprocessor for YAML files.  Both its input and output are YAML. It scans the input for symbols and makes substitutions and expansions on the output. yamp is 100% YAML so the syntax for defining and calling macros is YAML also.
 
 == TL;DR
@@ -210,7 +211,7 @@ mygit:
 |=======================
 
 
-When scanning maps, Yamp only substitutes variables for map keys which have embedded curly braces. 
+When scanning maps, Yamp does not expand map keys unless either the map key is explicitly identified as a variable with the `^` caret character, or the map key is a string with embedded curly braces. In these two special cases Yamp looks up variables or interpolates the string.  
 
 Some special variables contain 'macros' - these must be within a map of their own, with a value containing a map of arguments which can contain anything. Normally a macro will contain more than the original, so we call this 'macro expansion' footnote:[But it could actually be a reduction!] ;-). 
 
@@ -250,9 +251,6 @@ Here's examples of three kinds of things Yamp is scanning for replacement:
 ----
 
 When all the objects in the data have been scanned and in some cases, substituted, Yamp outputs the new object tree on the standard output in YAML format. Becuase YAML maps are unordered, the order of the keys and their corresponding values on output maybe be different from the input footnote:[Order-preservation may happen in a future version, but it's complicated].
-
-
-
 
 === Variables
 
@@ -302,6 +300,17 @@ Inside strings, yamp will insert expansions delimited by the double-curlies `{{`
 # Produces AChristopherA
 ----
 
+This processing is also done in map keys so that map keys can be computed during the expansion. For example:
+
+[source, YAML]
+----
+repeat:
+  for: loop_variable
+  in : {range: [1,3] }
+  body:
+    'KEY_{{loop_variable}}': some step
+----
+
 ===== Interpolation with dot syntax
 
 If a string contains periods, such as `data.height` Yamp looks for a exactly matching variable name, which is expanded with the value. Otherwise the first item (ie `data`) is assumed to be a variable name.
@@ -335,6 +344,42 @@ Produces
 - db01
 - web01
 ----
+
+===== Variable Map Keys with the Caret
+
+Normally map keys are not expanded, but with a preceding caret character Yamp looks up the variable name in the current binding and uses its value. For example:
+
+[source, YAML]
+----
+- defmacro:
+    name: my-macro
+    args: [ param ]
+    value:
+      ^param:
+        data : RU
+---
+- my-macro: { param: 42 }
+----
+
+Evaluates to:
+
+[source, YAML]
+----
+- 42:
+    LtUaE: 42
+----
+
+This facility even allows macros to be called indirectly since the macro being called is provided by the variable rather than in the code itself. Here's an example, although the practical value of this is yet to surface. This code applies four different macros to the same arguments in turn:
+
+[source, YAML]
+----
+repeat:
+  for: macro
+  in: [+, range, flatten, quote]
+  body:
+    ^macro: [1, 5]
+----
+
 
 ===== Defining Multiple Variables
 
@@ -371,11 +416,11 @@ Used at the top level
 - {plus: [1,2,3]}
 ----
 
-==== Macros
+=== Macros
 
 Macros are re-usable templates of YAML objects that can be called up almost anywhere in the expansion. They differ from variables becuase they have parameters which are used to fill holes in the template. The are similar to functions, but unlike functions their entire text is always the result. By defining oft-repeated YAML fragments in macros repetitive work is avoided. Also a singular macro definition makes maintainance easy since there is a single defintion for a concept which can be easily changed.
 
-===== Defining with `defmacro`
+==== Defining with `defmacro`
 
 Macros are defined with the `define` macro which gives the macro a name and specifies the arguments it has and the expansion to return, the body.  A macro definition looks like this:
 

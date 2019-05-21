@@ -577,6 +577,14 @@ def expand(tree, bindings):
         newdict = {}
 
         for k,v in tree.iteritems():
+
+            if type(k) == str and k.startswith('^'):
+                variable_name = k[1:]
+                value = lookup(bindings, variable_name)
+                if not value:
+                    raise(YampException('ERROR: Variable {} not defined in {}'.format(variable_name, tree)))
+                newdict[value[0]] = expand(v, bindings)
+                continue
             func = expand(k, bindings)
             if type(func) == tuple:
                 if func[0] == 'eager':
@@ -585,6 +593,7 @@ def expand(tree, bindings):
                     return(expand(func[1](tree, v, bindings), bindings))
                 else: # quote
                     return(func[1](tree, v, bindings))
+
             interp_k = interpolate(k, bindings)
             if interp_k != k:
                 # string containing {{ }} - only these keys are expanded
