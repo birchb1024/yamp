@@ -356,7 +356,7 @@ Normally map keys are not expanded, but with a preceding caret character Yamp lo
     args: [ param ]
     value:
       ^param:
-        data : RU
+        LtUaE : RU
 ---
 - my-macro: { param: 42 }
 ----
