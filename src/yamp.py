@@ -25,7 +25,7 @@ def interpolate(astring, bindings):
     If the variables are called up but not defined throw an error.
     :param astring:
     :param bindings:
-    :return:
+    :return: astring with added values
     """
 
     if type(astring) != str:
@@ -45,6 +45,22 @@ def interpolate(astring, bindings):
         rebound.append(str(value))
     return(''.join(rebound))
 
+#
+# About bindings
+#
+# The environment dicts, bindings, have the following union structure:
+#    key - is a string, the variable name
+#    value - one of 
+#        - atomic type, String int, float, boolean etc
+#        - list
+#        - dict 
+#        - tuple indicates an executable either a closure (macro) or a builtin 
+#            [0] - A type indicator string, one of:
+#                     'eager' - meaning expand arguments before execution of macro, expand the result of macro execution
+#                     'lazy' - do not execute arguments before macro call but expand the result
+#                     'quote' - dont expand arguments or expand the result
+#            [1] - a callable Python function value containing the macro or builtin  
+#
 def lookup(env, key):
     """
     Search an environment stack for a binding of key to a value, 
@@ -64,7 +80,13 @@ def lookup(env, key):
 
 def new_macro(tree, bindings):
     """
-    Given a macro definition of the form {'name': <string>, 'args': None|<list of strings>|<string>, 'value': <anything>},
+    Given a macro definition of the form 
+        {
+        'name': <string>,
+        'macro_type': <eager|lazy|quote>, 
+        'args': None|<list of strings>|<string>, 
+        'value': <anything>
+        },
     create a Python function closed in the current function. The function returned has signature (args),
     where args contains a map with bindings for each of the 'args' supplied. The returned function applies
     expansion of the 'body' with the supplied real arguments in its environment.
@@ -73,7 +95,7 @@ def new_macro(tree, bindings):
     the returned function binds all its actual arguments to the specified args binding.
 
     If 'args' is None no arguments are bound, but if actual arguments are provided the returned function raises an error.
-    :param tree: {'name': <string>, 'args': None|<list of strings>|<string>, 'value': <anything>}
+    :param tree: {'name': <string>, 'macro_type': <eager|lazy|quote>, 'args': None|<list of strings>|<string>, 'value': <anything>}
     :param bindings: environment to update
     :return: A tuple containing a type tag in [0] and in [1] a new function to apply when the macro is called
     """
