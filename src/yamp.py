@@ -49,19 +49,18 @@ def lookup(env, key):
     """
     Search an environment stack for a binding of key to a value, 
     following __parent__ links to higher environment. 
-    If nothing, return None. 
     :param env: Start seaching from this env
     :param key: variable name to look for.
-    :return: Value if found otherwise None
+    :return: value, ok - if key is found ok is True and value has the value, otherwise ok is False and value is undefined.
     """
     while True:
         if key in env:
-            return (env[key],)
+            return env[key], True
         elif '__parent__' in env:
             env = env['__parent__']
             continue
         else:
-            return None
+            return None, False
 
 def new_macro(tree, bindings):
     """
@@ -131,9 +130,9 @@ def subvar_lookup(original, vars_list, tree, bindings):
         raise(YampException('Subvariable "{}" not found in {}'.format(vars_list, original)))
 
     # If the subvar is a variable binding, use it
-    ftv = lookup(bindings, vars_list[0])
-    if ftv:
-        first =  ftv[0]
+    ftv, ok = lookup(bindings, vars_list[0])
+    if ok:
+        first =  ftv
     else:
         first = vars_list[0]
     if type(first) not in (str, int):
@@ -169,18 +168,18 @@ def expand_str(variable_name, bindings):
     :param bindings: - current environment
     :return:
     """
-    value = lookup(bindings, variable_name)
-    if value:
-        return value[0] # a simple variable like 'host' or a variable like 'a.c.e' matches first
+    value, ok = lookup(bindings, variable_name)
+    if ok:
+        return value # a simple variable like 'host' or a variable like 'a.c.e' matches first
 
     # nothing simple, look for subvariables.
     subvar = variable_name.split('.')
     if len(subvar) > 1:
         # It's a dot notation variable like 'host.name'
-        topvalue = lookup(bindings, subvar[0])
-        if not topvalue:
+        topvalue, ok = lookup(bindings, subvar[0])
+        if not ok:
             return variable_name # No variable found
-        return subvar_lookup(variable_name, subvar[1:], topvalue[0], bindings)
+        return subvar_lookup(variable_name, subvar[1:], topvalue, bindings)
     else:
         return variable_name
 
@@ -580,10 +579,10 @@ def expand(tree, bindings):
 
             if type(k) == str and k.startswith('^'):
                 variable_name = k[1:]
-                value = lookup(bindings, variable_name)
-                if not value:
+                value, ok = lookup(bindings, variable_name)
+                if not ok:
                     raise(YampException('ERROR: Variable {} not defined in {}'.format(variable_name, tree)))
-                newdict[value[0]] = expand(v, bindings)
+                newdict[value] = expand(v, bindings)
                 continue
             func = expand(k, bindings)
             if type(func) == tuple:
