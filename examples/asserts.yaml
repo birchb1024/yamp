@@ -20,5 +20,5 @@ file_header:
       if: that
       else: { python_eval: 'iter(_ for _ in ()).throw(Exception("ASSERT FAILED {}".format(that)))' }
 ---
-assert: {that: true}
-assert: {that: false}
+- assert: {that: true}
+- assert: {that: false}
