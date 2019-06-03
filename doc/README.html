@@ -1848,6 +1848,31 @@ http://www.gnu.org/software/src-highlite -->
 <h2 id="_maintenance_of_yamp">Maintenance of Yamp</h2>
 <div class="sectionbody">
 <div class="sect2">
+<h3 id="_known_issues">Known Issues</h3>
+<div class="paragraph"><p>There is a bug in the Python YAML parser in which duplicated map keys are not flagged as erroneous. See <a href="https://github.com/yaml/pyyaml/issues/165:">yaml/pyyaml#165</a>
+Quote:</p></div>
+<div class="quoteblock">
+<div class="content">
+<div class="paragraph"><p>YAML spec in version 1.2 says that in a valid YAML file, mapping keys are unique. This is not the case in pyyaml, as can be seen by loading this sample file.
+The correct result from loading this file is an error. pyyaml instead naively overwrites results with the last key, resulting in this dict: {<em>a</em>: {<em>q</em>: <em>b</em>}}.</p></div>
+</div>
+<div class="attribution">
+</div></div>
+<div class="paragraph"><p>Sample File</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #009900">a</span><span style="color: #990000">:</span>
+<span style="color: #990000">  -</span> b
+<span style="color: #990000">  -</span> c
+<span style="color: #009900">a</span><span style="color: #990000">:</span>
+<span style="color: #990000">  </span><span style="color: #009900">q</span><span style="color: #990000">:</span> a
+<span style="color: #990000">  </span><span style="color: #009900">q</span><span style="color: #990000">:</span> b</tt></pre></div></div>
+<div class="paragraph"><p>Suggest validation of the incomimg YAML with an alternate parser such as <a href="https://github.com/birchb1024/yamlok:">yamlok</a> or <a href="https://github.com/adrienverge/yamllint:">yamllint</a>.</p></div>
+</div>
+<div class="sect2">
 <h3 id="_code">Code</h3>
 <div class="paragraph"><p>Run the unit tests with <code>python test/test_expand_01.py</code>.</p></div>
 </div>
@@ -1862,7 +1887,7 @@ http://www.gnu.org/software/src-highlite -->
 <div id="footer">
 <div id="footer-text">
 Version 0.2<br />
-Last updated 2019-05-22 10:50:02 AEST
+Last updated 2019-06-03 12:07:14 AEST
 </div>
 </div>
 </body>

@@ -991,7 +991,30 @@ Maybe later...
 
 == Maintenance of Yamp
 
+=== Known Issues
+
+There is a bug in the Python YAML parser in which duplicated map keys are not flagged as erroneous. See https://github.com/yaml/pyyaml/issues/165:[yaml/pyyaml#165]
+Quote:
+____
+YAML spec in version 1.2 says that in a valid YAML file, mapping keys are unique. This is not the case in pyyaml, as can be seen by loading this sample file.
+The correct result from loading this file is an error. pyyaml instead naively overwrites results with the last key, resulting in this dict: {'a': {'q': 'b'}}.
+____
+
+Sample File
+[source, YAML]
+----
+a:
+  - b
+  - c
+a:
+  q: a
+  q: b
+----
+
+Suggest validation of the incomimg YAML with an alternate parser such as https://github.com/birchb1024/yamlok:[yamlok] or https://github.com/adrienverge/yamllint:[yamllint].
+
 === Code
+
 Run the unit tests with `python test/test_expand_01.py`. 
 
 === Updating This Document
