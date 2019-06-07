@@ -70,6 +70,7 @@ pipelines:
 - data.1
 - data.1.hostname
 - data.zero.hostname
+- data.1.not_there
 ---
 defmacro:
   name: app-upgrade

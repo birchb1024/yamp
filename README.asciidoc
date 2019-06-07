@@ -250,7 +250,7 @@ Here's examples of three kinds of things Yamp is scanning for replacement:
     phone: (555) 098 880
 ----
 
-When all the objects in the data have been scanned and in some cases, substituted, Yamp outputs the new object tree on the standard output in YAML format. Becuase YAML maps are unordered, the order of the keys and their corresponding values on output maybe be different from the input footnote:[Order-preservation may happen in a future version, but it's complicated].
+When all the objects in the data have been scanned and in some cases, substituted, Yamp outputs the new object tree on the standard output in YAML format. Because YAML maps are unordered, the order of the keys and their corresponding values on output maybe be different from the input footnote:[Order-preservation may happen in a future version, but it's complicated].
 
 === Variables
 
@@ -317,6 +317,8 @@ If a string contains periods, such as `data.height` Yamp looks for a exactly mat
 
 If a binding for the first part is found the value of the variable is assumed to be a collection. The other items which we call sub-variables are used to index the collection (ie `height`). If the collection is a map, the sub-variable name is used as the key. If it is a list the subvariable must evaluate to an integer which is zero-indexed into the list. These subvariable names are also expanded before use so other variables can be used to index the collection. 
 
+If the subvariable variable cannot be found for some reason a warning is printed on the standard error and the expansion is the whole dot variable. 
+
 [source, YAML]
 ----
 - define: { zero: 0 }
@@ -334,6 +336,7 @@ If a binding for the first part is found the value of the variable is assumed to
 - data.1
 - data.1.hostname
 - data.zero.hostname
+- data.1.not_there
 ----
 
 Produces
@@ -343,6 +346,7 @@ Produces
 - Wednesday
 - db01
 - web01
+- data.1.not_there
 ----
 
 ===== Variable Map Keys with the Caret
@@ -538,7 +542,7 @@ Macro calls can be nested i.e. a macro can can contain a call to another in its 
 
 === Conditional Expansion with `if then else`
 
-The `if` macro renders one value from a choice of two based on whether the condition argument is true. Where true means it's `true` or not `false` or `null`. The `then` argument is expanded if so, otherwise the `else` argument. It's not required to have both `then` and `else` arguments - when the condition requires the missing one, it expands to `null`.
+The `if` macro renders one value from a choice of two based on whether the condition argument is true. Where true means it's `true` or not `false` or `null`. The `then` argument is returned if so, otherwise the `else` argument. You don't need both `then` and `else` arguments - when the condition requires the missing one, it expands to `null`. The `then` and `else` clauses may have been expanded by the processor prior to the condition evaluation. The condition just serves to choose which of the two expansions are to be used, rather than controlling execution flow. See *Side Effects* below.
 
 [source,YAML]
 ----
@@ -993,6 +997,7 @@ Maybe later...
 
 === Known Issues
 
+==== Duplicated Map Keys
 There is a bug in the Python YAML parser in which duplicated map keys are not flagged as erroneous. See https://github.com/yaml/pyyaml/issues/165:[yaml/pyyaml#165]
 Quote:
 ____
@@ -1012,6 +1017,11 @@ a:
 ----
 
 Suggest validation of the incomimg YAML with an alternate parser such as https://github.com/birchb1024/yamlok:[yamlok] or https://github.com/adrienverge/yamllint:[yamllint].
+
+==== Side Effects
+
+Yamp can scan the entire clause being processed for variable replacements before it executes builtins and macros. Hence you should not code side-effects via `define` or via `python_eval`. 
+The processing may invoke them and then throw away the results. `if` does this for example.  
 
 === Code
 

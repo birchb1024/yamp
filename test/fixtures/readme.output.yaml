@@ -33,6 +33,7 @@ pipelines:
 - Wednesday
 - db01
 - web01
+- data.1.not_there
 ---
 - Database upgrade for Netflix:
   - stop application Netflix

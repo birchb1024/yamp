@@ -335,21 +335,22 @@ class TestYamp(unittest.TestCase):
         self.assertEquals(2, expand('l0sub.avar.l2', global_env))
 
     def testSubVarBad(self):
-        global_env = {'l0': 0, 'l0sub': {'l1': 1, 'l1sub': {'l2': 2}}}
-        with self.assertRaises(Exception) as context:
-            expand('l0.ZZZ', global_env)
-        self.assertTrue('Subvariable' in context.exception.message)
+        global_env = {'foo': False, 'one': '1', 'X': 'Y', 'top': [0,1,2,3], 'l0': 0, 'l0sub': {'l1': 1, 'l1sub': {'l2': 2}}}
+        self.assertEquals('l0.ZZZ', expand('l0.ZZZ', global_env))
+        self.assertEquals('top.X', expand('top.X', global_env))        
+        self.assertEquals('top.4', expand('top.4', global_env))        
+        self.assertEquals('top.1.notthere', expand('top.1.notthere', global_env))        
+        self.assertEquals('top.foo', expand('top.foo', global_env))
 
     def testSubVarBadDeep(self):
         global_env = {'l0': 0, 'l0sub': {'l1': 1, 'l1sub': {'l2': 2}}}
-        with self.assertRaises(Exception) as context:
-            expand('l0sub.l1sub.ZZZ', global_env)
-        self.assertTrue('Subvariable' in context.exception.message)
+        self.assertEquals('l0sub.l1sub.ZZZ', expand('l0sub.l1sub.ZZZ', global_env))
 
     def testSubVarList(self):
-        global_env = {'top': [0,1,2,3]}
+        global_env = {'foo': False, 'one': '1', 'X': 'Y', 'top': [0,1,2,3]}
         self.assertEquals([0,1,2,3], expand('top', global_env))
         self.assertEquals(0, expand('top.0', global_env))
+        self.assertEquals(1, expand('top.one', global_env))        
 
     def testSubVarListBound(self):
         global_env = {'top': [0,1,2,3], 'two': 2}

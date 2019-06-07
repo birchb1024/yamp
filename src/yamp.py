@@ -147,9 +147,11 @@ def subvar_lookup(original, vars_list, tree, bindings):
     :return: Example - Given 'b.1', ['b', '1' ] , {'b': ['x', 'y']} => returns 'y'
     """
     if len(vars_list) == 0:
-        raise(YampException('Subvariable not found in {}'.format(original)))
+        print('Subvariable not found in {}'.format(original), file=sys.stderr)
+        return original
     if tree == None:
-        raise(YampException('Subvariable "{}" not found in {}'.format(vars_list, original)))
+        print('Subvariable "{}" not found in {}'.format(vars_list, original), file=sys.stderr)
+        return original
 
     # If the subvar is a variable binding, use it
     ftv, ok = lookup(bindings, vars_list[0])
@@ -158,10 +160,12 @@ def subvar_lookup(original, vars_list, tree, bindings):
     else:
         first = vars_list[0]
     if type(first) not in (str, int):
-        raise(YampException('Subvariable "{}" not a string or int in {}'.format(first, original)))
+        print('WARNING: Subvariable "{}" not a string or int in {}'.format(first, original), file=sys.stderr)
+        return original
     if type(tree) == dict:
         if not first in tree.keys():
-            raise(YampException('Subvariable "{}" not found in {}'.format(first, original)))
+            print('WARNING: Subvariable "{}" not found in {}'.format(first, original), file=sys.stderr)
+            return original
         if len(vars_list) == 1: # last one
             return tree[first]
         else:
@@ -172,15 +176,18 @@ def subvar_lookup(original, vars_list, tree, bindings):
         elif type(first) == str and first.isdigit():
             index = int(first)
         else:
-            raise(YampException('Subvariable List index not numeric: "{}" for {} {}'.format(first, original, tree)))
+            print('WARNING: Subvariable List index not numeric: "{}" for {} {}'.format(first, original, tree), file=sys.stderr)
+            return original
         if len(tree) <= index or index < 0:
-            raise(YampException('Subvariable List index out of bounds: {} for {} {}'.format(index, original, tree)))
+            print('WARNING: Subvariable List index out of bounds: {} for {} {}'.format(index, original, tree), file=sys.stderr)
+            return original
         if len(vars_list) == 1: # Last one
             return tree[index]
         else:
             return subvar_lookup(original, vars_list[1:], tree[index], bindings)
     else:
-        raise(YampException('Subvariable data not indexable {} {}'.format(original, tree)))
+        print('WARNING: Subvariable data not indexable {} {}'.format(original, tree), file=sys.stderr)
+        return original
 
 def expand_str(variable_name, bindings):
     """
