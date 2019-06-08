@@ -652,10 +652,10 @@ pipelines:
 ^range
 ...
 ---
-? !!python/tuple
-- eager
-- !!python/name:yamp.apply ''
-: null
+- 1
+- 2
+- 3
+- 4
 ---
 - +:
   - 123
@@ -702,3 +702,8 @@ pipelines:
   - 5
 - - 1
   - 5
+---
+- '*************** File: issue06.yaml *****************'
+---
+output:
+  test: 2

@@ -399,6 +399,8 @@ def range_builtin(tree, statement, bindings):
     """
     :return: a list from  statement[0] to statement[1]
     """
+    if not statement:
+       raise(YampException('Syntax error was expecting integers list in {}, got {}'.format(tree, statement)))
     validate_params(tree, {'range': None}, statement, [1,2])
     start = str(expand(statement[0], bindings))
     end = str(expand(statement[1], bindings))
@@ -567,6 +569,26 @@ def add_builtins_to_env(env):
     
     return env
 
+def is_function(tree, bindings):
+    """
+    Return function tuple and rhs if this is a function call, else False
+    """
+    func = None
+    k = None    
+    if len(tree.keys()) == 1:
+        k = tree.keys()[0]
+    elif len(tree.keys()) <= 3 and "if" in tree: # Special case :-(
+        k = "if"
+    if type(k) == str and k.startswith('^'):
+        variable_name = k[1:]
+        func, ok = lookup(bindings, variable_name)
+        if not ok:
+            raise(YampException('ERROR: Variable {} not defined in {}'.format(variable_name, tree)))
+    else: 
+        func = expand(k, bindings)
+    if type(func) == tuple:
+        return func, tree[k]
+    return False, None
 
 def expand(tree, bindings):
     """
@@ -597,6 +619,17 @@ def expand(tree, bindings):
     elif type(tree) == dict:
         newdict = {}
 
+        # Lookahead for functions have Lazy maps we dont want to expand yet...
+        func, rhs = is_function(tree, bindings)
+        if func :
+            if func[0] == 'eager':
+                return(expand(func[1](tree, expand(rhs, bindings), bindings), bindings))
+            elif func[0] == 'lazy':
+                return(expand(func[1](tree, rhs, bindings), bindings))
+            else: # quote
+                return(func[1](tree, rhs, bindings))
+
+        # Just a normal map - not a function
         for k,v in tree.iteritems():
 
             if type(k) == str and k.startswith('^'):

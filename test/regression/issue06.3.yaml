@@ -1,0 +1,10 @@
+- define:
+    x: 
+      - A
+      - B
+- defmacro:
+    name: PRINTNUM
+    args: [ data ]
+    value: { if: { python_eval: 'data == "ONE"' }, then: x.one, else: x.1 }
+---
+{ "output": { "test": { PRINTNUM: { data: "TWO" } } } }
