@@ -573,21 +573,34 @@ def is_function(tree, bindings):
     """
     Return function tuple and rhs if this is a function call, else False
     """
+    def lookup_function(k):
+        """
+        Return the function def from its binding, or None
+        """
+        if type(k) == str and k.startswith('^'):
+            variable_name = k[1:]
+            func, ok = lookup(bindings, variable_name)
+            if not ok:
+                raise(YampException('ERROR: Variable {} not defined in {}'.format(variable_name, tree)))
+        else: 
+            func = expand(k, bindings)
+        return func
+
     func = None
     k = None    
     if len(tree.keys()) == 1:
         k = tree.keys()[0]
-    elif len(tree.keys()) <= 3 and "if" in tree: # Special case :-(
+    elif "if" in tree: # Special case :-(
         k = "if"
-    if type(k) == str and k.startswith('^'):
-        variable_name = k[1:]
-        func, ok = lookup(bindings, variable_name)
-        if not ok:
-            raise(YampException('ERROR: Variable {} not defined in {}'.format(variable_name, tree)))
-    else: 
-        func = expand(k, bindings)
+    func = lookup_function(k)
     if type(func) == tuple:
         return func, tree[k]
+    # At this point we have len(keys()) > 1 and its not an "if"
+    # so we cannot have a function under any key...
+    for k,v in tree.iteritems():
+        func = lookup_function(k)        
+        if type(func) == tuple:
+            raise(YampException('ERROR: too many keys in macro {}'.format(tree)))
     return False, None
 
 def expand(tree, bindings):
@@ -639,18 +652,10 @@ def expand(tree, bindings):
                     raise(YampException('ERROR: Variable {} not defined in {}'.format(variable_name, tree)))
                 newdict[value] = expand(v, bindings)
                 continue
-            func = expand(k, bindings)
-            if type(func) == tuple:
-                if func[0] == 'eager':
-                    return(expand(func[1](tree, expand(v, bindings), bindings), bindings))
-                elif func[0] == 'lazy':
-                    return(expand(func[1](tree, v, bindings), bindings))
-                else: # quote
-                    return(func[1](tree, v, bindings))
 
             interp_k = interpolate(k, bindings)
             if interp_k != k:
-                # string containing {{ }} - only these keys are expanded
+                # string contains {{ }} - only these keys are expanded
                 if interp_k in newdict:
                     raise(YampException('ERROR: duplicate map key "{}" in {}'.format(interp_k, tree)))
                 newdict[interp_k] = expand(v, bindings)
