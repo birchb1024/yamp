@@ -1,0 +1,23 @@
+file_header:
+---
+- defmacro:
+    name: TESTARG
+    args: [ FIRST ]
+    value:
+      { data: { if: { python_eval: '1 == FIRST' }, then: "equals one", else: "correct - not equals one" } }
+---
+- { TESTARG: { FIRST: 0 } }
+- defmacro:
+    name: TESTARG
+    args: [ FIRST ]
+    value:
+      repeat:
+          for: rux
+          in: { range: [ 1, 4 ] }
+          body:
+            if: { python_eval: "rux == FIRST" }
+            then: "{{rux}} equals {{FIRST}}"
+            else: "{{rux}} not equals {{FIRST}}"
+---
+TESTARG: { FIRST: 2 }
+---

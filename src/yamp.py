@@ -11,6 +11,7 @@ import os
 import re
 import sys
 import json
+import math
 import numbers
 import datetime
 from yaml import load, Loader, dump, load_all
@@ -450,6 +451,21 @@ def load_builtin(tree, args, bindings):
     validate_params(tree, {'': None}, args, '')
     return expand_file(args, bindings, expandafterload=False)
 
+
+class Env(dict):
+  """
+    Class to make python_eval find variables easily
+  """
+  def __missing__(self, key):
+    """
+    Called by dict when the key is not found.
+    Return the value from higher environment. 
+    """
+    value, ok = lookup(self, key)
+    if not ok:
+         raise(KeyError('python_eval: variable not found "{}"'.format(key)))
+    return value
+
 def python_builtin(tree, args, bindings):
     """
     Expand a tree of the form {python: 'some expression'} by executing Python eval() with the current bindings
@@ -460,7 +476,7 @@ def python_builtin(tree, args, bindings):
     :return: Expanse
     """
     validate_params(tree, {'': None}, args, '')
-    return eval('(' + args + ')', globals(), bindings)
+    return eval('(' + args + ')', globals(), Env(bindings))
 
 def repeat_builtin(tree, args, bindings):
     """

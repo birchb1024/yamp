@@ -940,16 +940,22 @@ _: /usr/bin/python
 
 === Evaluating Python expressions
 
-The `python_eval` macro allows you to execute expressions inside the Python interpreter running Yamp. Yamp uses the Python https://docs.python.org/2/library/functions.html#eval:[eval()] function, passing the current variable bindings to eval as the `locals`. This allows Python to access the Yamp-defined variables. Python cannot see bindings in the environment hierarchy directly, so to resolve variables in higher environments use the Yamp lookup function as in `lookup(__parent__, 'variablename')[0]`` function. Warning - Yamp internals can change at any time.  
+The `python_eval` macro allows you to execute expressions inside the Python interpreter running Yamp. Yamp uses the Python https://docs.python.org/2/library/functions.html#eval:[eval()] function, passing the current variable bindings to eval as the `locals`. This allows Python to access the Yamp-defined variables, including bindings in the environment hierarchy defined by macros.  
+
+Warning - Yamp internals can change at any time.  
 
 [source, YAML]
 ----
-define: {FOO: 2}
+- defmacro:
+    name: factorial
+    args: [N]
+    value:
+      python_eval: "math.factorial(N)"
 ---
-python_eval: ' FOO**10 '
+factorial: {N: 10}
 ----
 
-Produces `1024`
+Produces `3628800`
 
 This macro is recommended for simple tasks about objects such as:
 

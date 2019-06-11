@@ -41,4 +41,7 @@ include:
   - ../examples/undefine.yaml
   - ../examples/varargs.yaml
   - ../examples/caret.yaml
+---
+include:
   - ../examples/issue06.yaml
+  - regression/issue07.yaml

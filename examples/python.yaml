@@ -24,3 +24,12 @@ defmacro:
     top_level_macro:
 ---
 amacro:
+---
+- defmacro:
+    name: factorial
+    args: [N]
+    value:
+      python_eval: "math.factorial(N)"
+---
+factorial: {N: 10}
+ 

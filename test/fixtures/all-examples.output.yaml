@@ -275,6 +275,9 @@ webserver:
 7
 ...
 ---
+3628800
+...
+---
 - '*************** File: quote.yaml *****************'
 ---
 - 2
@@ -707,3 +710,12 @@ pipelines:
 ---
 output:
   test: 2
+---
+- '*************** File: issue07.yaml *****************'
+---
+- data: correct - not equals one
+---
+- 1 not equals 2
+- 2 equals 2
+- 3 not equals 2
+- 4 not equals 2
