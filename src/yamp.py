@@ -396,19 +396,43 @@ def plus_builtin(tree, args, bindings):
         sum += item
     return sum
 
+def str_2_int(x):
+  """
+  Because idigit() doesnt deal with +- 
+  """
+  if type(x) != str and type(x) != type(1):
+      return None, False
+  try:
+      x = int(x)
+      return x, True
+  except ValueError:
+      return None, False
+  
 def range_builtin(tree, statement, bindings):
     """
     :return: a list from  statement[0] to statement[1]
     """
     if not statement:
-       raise(YampException('Syntax error was expecting integers list in {}, got {}'.format(tree, statement)))
-    validate_params(tree, {'range': None}, statement, [1,2])
-    start = str(expand(statement[0], bindings))
-    end = str(expand(statement[1], bindings))
-    for item in [start, end]:
-        if not item.isdigit():
-            raise(YampException('Syntax error was expecting integer range in {}, got {}'.format(tree, item)))
-    return list(range(int(start), int(end)+1))
+       raise(YampException('range: was expecting map or integer sequence in {}'.format(tree)))
+    if type(statement) == list:
+        if len(statement) != 2:
+           raise(YampException('range: {} is not a sequence of two'.format(tree)))
+        start, sok = str_2_int(statement[0])
+        end, eok = str_2_int(statement[1])
+        if not sok or not eok: 
+            raise(YampException('range: {} is not an integer in {}'.format(statement, tree)))
+        if start < end:
+          result = list(range(start, end+1))
+        else:
+          result = list(range(start, end-1, -1))
+        if len(result) == 0:
+            raise(YampException('range: empty range in {}'.format(tree)))
+        return result
+    elif type(statement) == dict:
+        return list(statement.keys())
+    else:
+       raise(YampException('Syntax error was expecting map or integer sequence in {}, got {}'.format(tree, statement)))
+      
 
 def flatten_builtin(tree, args, bindings):
     """

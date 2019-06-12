@@ -714,7 +714,7 @@ Produces:
 
 === Looping with `range`
 
-The `range` macro substitutes a list of numbers that can be used in `repeat` macros. (Or anywhere else a list of numbers is needed). The start and end values are passed as a list argument. 
+The `range` macro substitutes a list of numbers that can be used in `repeat` macros. (Or anywhere else a list of numbers is needed). The start and end values are passed as a list argument. The range can count up or down, always by one. 
 
 [source, YAML]
 ----
@@ -722,6 +722,28 @@ range: [3,5]
 ----
 
 Produces `[3,4,5]`
+
+`range` also accepts a map object, in which case it expands the sequence of map keys. For example
+
+[source, YAML]
+----
+- define: {map: {ra: 879, rb: 662}}
+- range: map
+----
+
+Produces `[ra, rb]`. This can then be used in repeat to loop over the items in a map. Dot notation is used to expand individual members of the map. 
+For example here the loop variable is set to `ra` then `rb` which `map.keyz` resolves to `879` and `662`:
+
+[source, YAML]
+----
+repeat:
+  for: keyz
+  in: {range: map}
+  body:
+    map.keyz
+----
+
+Be aware that map keys in data (such as `ra`) might conflict with already defined variables.   
 
 === Combining Lists with `flatten`
 

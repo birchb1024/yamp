@@ -1523,7 +1523,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div class="sect2">
 <h3 id="_looping_with_code_range_code">Looping with <code>range</code></h3>
-<div class="paragraph"><p>The <code>range</code> macro substitutes a list of numbers that can be used in <code>repeat</code> macros. (Or anywhere else a list of numbers is needed). The start and end values are passed as a list argument.</p></div>
+<div class="paragraph"><p>The <code>range</code> macro substitutes a list of numbers that can be used in <code>repeat</code> macros. (Or anywhere else a list of numbers is needed). The start and end values are passed as a list argument. The range can count up or down, always by one.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.8
 by Lorenzo Bettini
@@ -1531,6 +1531,27 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="color: #009900">range</span><span style="color: #990000">:</span> [<span style="color: #993399">3</span>,<span style="color: #993399">5</span>]</tt></pre></div></div>
 <div class="paragraph"><p>Produces <code>[3,4,5]</code></p></div>
+<div class="paragraph"><p><code>range</code> also accepts a map object, in which case it expands the sequence of map keys. For example</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #990000">- </span><span style="color: #009900">define</span><span style="color: #990000">:</span> {map: {ra: <span style="color: #993399">879</span>, rb: <span style="color: #993399">662</span>}}
+<span style="color: #990000">- </span><span style="color: #009900">range</span><span style="color: #990000">:</span> map</tt></pre></div></div>
+<div class="paragraph"><p>Produces <code>[ra, rb]</code>. This can then be used in repeat to loop over the items in a map. Dot notation is used to expand individual members of the map.
+For example here the loop variable is set to <code>ra</code> then <code>rb</code> which <code>map.keyz</code> resolves to <code>879</code> and <code>662</code>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #009900">repeat</span><span style="color: #990000">:</span>
+<span style="color: #990000">  </span><span style="color: #009900">for</span><span style="color: #990000">:</span> keyz
+<span style="color: #990000">  </span><span style="color: #009900">in</span><span style="color: #990000">:</span> {range: map}
+<span style="color: #990000">  </span><span style="color: #009900">body</span><span style="color: #990000">:</span>
+    map.keyz</tt></pre></div></div>
+<div class="paragraph"><p>Be aware that map keys in data (such as <code>ra</code>) might conflict with already defined variables.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_combining_lists_with_code_flatten_code">Combining Lists with <code>flatten</code></h3>
@@ -1895,7 +1916,7 @@ http://www.gnu.org/software/src-highlite -->
 <div id="footer-text">
 Version 0.2<br />
 Last updated
- 2019-06-11 15:34:25 AEST
+ 2019-06-12 12:21:14 AEST
 </div>
 </div>
 </body>

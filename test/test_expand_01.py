@@ -665,7 +665,29 @@ class TestYamp(unittest.TestCase):
         self.try_validate_keys_error("Unexpected", [('a',)], {'a': None, 'b': None})
         self.try_validate_keys_error("Unexpected", [('a',)], {'b': None})
 
+    def teststr_2_int_OK(self):
+        self.assertEquals((2, True), (str_2_int(2)))
+        self.assertEquals((2, True), (str_2_int("2")))
+        self.assertEquals((2, True), (str_2_int("+2")))
+        self.assertEquals((-2, True), (str_2_int("-2")))
+  
+    def teststr_2_int_bad(self):
+        self.assertEquals((None, False), (str_2_int((2,))))
+        self.assertEquals((None, False), (str_2_int([2])))
+        self.assertEquals((None, False), (str_2_int({"x": 3})))
+        self.assertEquals((None, False), (str_2_int(2.3)))
+        self.assertEquals((None, False), (str_2_int("x")))
 
+    def test_range_builtin_ok(self):
+        self.assertEquals([3,2,1],range_builtin({ "range:" : [3,1]}, [3,1], {}))
+
+    def test_range_builtin_bad(self):
+        with self.assertRaises(Exception) as context:
+            range_builtin({ "range:" : None}, None, {})
+        with self.assertRaises(Exception) as context:
+            range_builtin({ "range:" : [1]}, [1], {})
+        with self.assertRaises(Exception) as context:
+            range_builtin({ "range:" :[1, "x"]}, [1, "x"], {})
 
     def runFileRegression(self, file_to_test, fixture):
         tempout = tempfile.mkstemp()
